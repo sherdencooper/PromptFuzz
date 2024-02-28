@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from .mutator import Mutator, MutatePolicy
     from .selection import SelectPolicy
 
-from gptfuzzer.llm import LLM, LocalLLM
+from gptfuzzer.llm import LLM
 from gptfuzzer.utils.template import synthesis_message
 from gptfuzzer.utils.predict import Predictor
 import warnings
@@ -111,8 +111,6 @@ class GPTFuzzer:
         self.generate_in_batch = False
         if len(self.questions) > 0 and generate_in_batch is True:
             self.generate_in_batch = True
-            if isinstance(self.target, LocalLLM):
-                warnings.warn("IMPORTANT! Hugging face inference with batch generation has the problem of consistency due to pad tokens. We do not suggest doing so and you may experience (1) degraded output quality due to long padding tokens, (2) inconsistent responses due to different number of padding tokens during reproduction. You should turn off generate_in_batch or use vllm batch inference.")
         self.setup()
 
     def setup(self):
@@ -146,26 +144,37 @@ class GPTFuzzer:
         self.raw_fp.close()
 
     def evaluate(self, prompt_nodes: 'list[PromptNode]'):
-        for prompt_node in prompt_nodes:
-            responses = []
-            messages = []
-            for question in self.questions:
-                message = synthesis_message(question, prompt_node.prompt)
-                if message is None:  # The prompt is not valid
-                    prompt_node.response = []
-                    prompt_node.results = []
-                    break
-                if not self.generate_in_batch:
-                    response = self.target.generate(message)
-                    responses.append(response[0] if isinstance(
-                        response, list) else response)
-                else:
-                    messages.append(message)
-            else:
-                if self.generate_in_batch:
-                    responses = self.target.generate_batch(messages)
-                prompt_node.response = responses
-                prompt_node.results = self.predictor.predict(responses)
+        messages = []
+        valid_prompt_indices = []
+    
+        # Prepare messages for batch generation and track valid prompts
+        for i, prompt_node in enumerate(prompt_nodes):
+            message = prompt_node.prompt
+            if message == ' ':
+                message = None
+            if message is not None:
+                messages.append(message)
+                valid_prompt_indices.append(i)
+    
+        # Generate responses in batch
+        if messages:
+            responses = self.target.generate_batch(messages)
+            print(responses)
+            # Assign responses and results to valid prompt nodes
+            for i, response in zip(valid_prompt_indices, responses):
+                prompt_nodes[i].response = [response]
+                prompt_nodes[i].results = self.predictor.predict([response])
+                
+            # Assign empty responses and results to invalid prompt nodes
+            for i in range(len(prompt_nodes)):
+                if i not in valid_prompt_indices:
+                    prompt_nodes[i].response = []
+                    prompt_nodes[i].results = []
+        else:
+            # If all prompts are invalid, set empty responses and results
+            for prompt_node in prompt_nodes:
+                prompt_node.response = []
+                prompt_node.results = []
 
     def update(self, prompt_nodes: 'list[PromptNode]'):
         self.current_iteration += 1

@@ -1,17 +1,18 @@
 import os
 import sys
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'  # for debugging
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from fastchat.model import add_model_args
 import argparse
 import pandas as pd
+import json
 from gptfuzzer.fuzzer.selection import MCTSExploreSelectPolicy
 from gptfuzzer.fuzzer.mutator import (
-    MutateRandomSinglePolicy, OpenAIMutatorCrossOver, OpenAIMutatorExpand,
+    MutateRandomSinglePolicy, NoMutatePolicy, OpenAIMutatorCrossOver, OpenAIMutatorExpand,
     OpenAIMutatorGenerateSimilar, OpenAIMutatorRephrase, OpenAIMutatorShorten)
 from gptfuzzer.fuzzer import GPTFuzzer
-from gptfuzzer.llm import OpenAILLM, LocalVLLM, LocalLLM, PaLM2LLM, ClaudeLLM
+from gptfuzzer.utils.predict import MatchPredictor, AccessGrantedPredictor
+from gptfuzzer.llm import OpenAILLM
 from PromptFuzz.utils import constants
 
 import random
@@ -22,63 +23,61 @@ httpx_logger: logging.Logger = logging.getLogger("httpx")
 httpx_logger.setLevel(logging.WARNING)
 
 
-def main(args):
-    initial_seed = pd.read_csv(args.seed_path)['text'].tolist()
-
-    openai_model = OpenAILLM(args.model_path, args.openai_key)
-
+def run_fuzzer(args):
     
-    save_path = f'./Results/{args.phase}/{args.mode}'
-    if args.add_eos:
-        save_path = f'./Results/{args.target_model}/GPTFuzzer_eos/{args.index}.csv'
+    target = f'./Datasets/{args.mode}_{args.phase}.jsonl'
+    # read the jsnol file
+    with open(target, 'r') as f:
+        targets = [json.loads(line) for line in f.readlines()]
+    target = targets[args.index]
+        
+    mutate_model = OpenAILLM(args.model_path, args.openai_key)
+    target_model = OpenAILLM(args.model_path, args.openai_key, target=target)
     
+    if args.mode == 'hijacking':
+        predictor = AccessGrantedPredictor()
+    elif args.mode == 'extraction':
+        predictor = MatchPredictor(target['access_code'])
+    save_path = f'./Results/{args.phase}/{args.mode}/{args.index}.csv'    
     print("The save path is: ", save_path)
+    # check if the directory exists
+    if not os.path.exists(os.path.dirname(save_path)):
+        os.makedirs(os.path.dirname(save_path))
+    
+    if args.phase == 'evaluate':
+        initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+    elif args.phase == 'focus':
+        initial_seed_path = f'./Datasets/{args.mode}_focus_seed.jsonl'
+    with open(initial_seed_path, 'r') as f:
+        initial_seed = [json.loads(line)['attack'] for line in f.readlines()]
+    
+    mutate_policy = MutateRandomSinglePolicy([
+            OpenAIMutatorCrossOver(mutate_model), 
+            OpenAIMutatorExpand(mutate_model),
+            OpenAIMutatorGenerateSimilar(mutate_model),
+            OpenAIMutatorRephrase(mutate_model),
+            OpenAIMutatorShorten(mutate_model)],
+            concatentate=True,
+        )
+    
+    if args.no_mutate:
+        mutate_policy = NoMutatePolicy()
+        args.energy = 1
+        args.max_query = len(initial_seed)
+        args.max_jailbreak = 9999999
 
     fuzzer = GPTFuzzer(
-        questions=questions,
-        target=openai_model,
-        predictor=roberta_model,
+        questions=[target['pre_prompt']],
+        target=target_model,
+        predictor=predictor,
         initial_seed=initial_seed,
-        mutate_policy=MutateRandomSinglePolicy([
-            OpenAIMutatorCrossOver(openai_model), 
-            OpenAIMutatorExpand(openai_model),
-            OpenAIMutatorGenerateSimilar(openai_model),
-            OpenAIMutatorRephrase(openai_model),
-            OpenAIMutatorShorten(openai_model)],
-            concatentate=True,
-        ),
+        result_file=save_path,
+        mutate_policy=mutate_policy,
         select_policy=MCTSExploreSelectPolicy(),
         energy=args.energy,
         max_jailbreak=args.max_jailbreak,
         max_query=args.max_query,
-        generate_in_batch=False,
+        generate_in_batch=True,
     )
 
     fuzzer.run()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Fuzzing parameters')
-    parser.add_argument('--index', type=int, default=0, help='The index of the target prompt')
-    parser.add_argument('--phase', choices=['evaluate', 'focus'], default='test', help='The phase of the fuzzing process')
-    parser.add_argument('--mode', choices=['hijack', 'extraction'], default='hijack', help='The mode of the fuzzing process')
-    parser.add_argument('--openai_key', type=str, default=None, help='OpenAI API Key')
-    parser.add_argument('--model_path', type=str, default='gpt-3.5-turbo-0125', help='target model path')
-    parser.add_argument('--max_query', type=int, default=1000,
-                        help='The maximum number of queries')
-    parser.add_argument('--max_jailbreak', type=int,
-                        default=1, help='The maximum jailbreak number')
-    parser.add_argument('--energy', type=int, default=1,
-                        help='The energy of the fuzzing process')
-    parser.add_argument('--seed_selection_strategy', type=str,
-                        default='round_robin', help='The seed selection strategy')
-    parser.add_argument("--max-new-tokens", type=int, default=512)
-    parser.add_argument("--seed_path", type=str,
-                        default="datasets/prompts/GPTFuzzer.csv")
-    add_model_args(parser)
-
-    args = parser.parse_args()
-    
-    if args.openai_key is None:
-        args.openai_key = constants.openai_key
-    main(args)
