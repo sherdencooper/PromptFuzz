@@ -1,6 +1,5 @@
 import os
 import sys
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'  # for debugging
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from fastchat.model import add_model_args
@@ -13,7 +12,7 @@ from gptfuzzer.fuzzer.mutator import (
     OpenAIMutatorGenerateSimilar, OpenAIMutatorRephrase, OpenAIMutatorShorten)
 from gptfuzzer.fuzzer import GPTFuzzer
 from gptfuzzer.utils.predict import MatchPredictor, AccessGrantedPredictor
-from gptfuzzer.llm import OpenAILLM, LocalVLLM, LocalLLM
+from gptfuzzer.llm import OpenAILLM
 from PromptFuzz.utils import constants
 
 import random
