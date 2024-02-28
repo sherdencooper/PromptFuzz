@@ -60,7 +60,7 @@ class PromptNode:
 
 class GPTFuzzer:
     def __init__(self,
-                 questions: 'list[str]',
+                 defenses: 'list[dict]',
                  target: 'LLM',
                  predictor: 'Predictor',
                  initial_seed: 'list[str]',
@@ -75,7 +75,7 @@ class GPTFuzzer:
                  generate_in_batch: bool = False,
                  ):
 
-        self.questions: 'list[str]' = questions
+        self.defenses: 'list[dict]' = defenses
         self.target: LLM = target
         self.predictor = predictor
         self.prompt_nodes: 'list[PromptNode]' = [
@@ -107,10 +107,7 @@ class GPTFuzzer:
         self.writter = csv.writer(self.raw_fp)
         self.writter.writerow(
             ['index', 'prompt', 'response', 'parent', 'results'])
-
-        self.generate_in_batch = False
-        if len(self.questions) > 0 and generate_in_batch is True:
-            self.generate_in_batch = True
+        self.generate_in_batch = True
         self.setup()
 
     def setup(self):
@@ -144,37 +141,25 @@ class GPTFuzzer:
         self.raw_fp.close()
 
     def evaluate(self, prompt_nodes: 'list[PromptNode]'):
-        messages = []
-        valid_prompt_indices = []
-    
-        # Prepare messages for batch generation and track valid prompts
-        for i, prompt_node in enumerate(prompt_nodes):
-            message = prompt_node.prompt
-            if message == ' ':
-                message = None
-            if message is not None:
-                messages.append(message)
-                valid_prompt_indices.append(i)
-    
-        # Generate responses in batch
-        if messages:
-            responses = self.target.generate_batch(messages)
+        # Initialize response and results as empty lists for each prompt node
+        for prompt_node in prompt_nodes:
+            prompt_node.response = []
+            prompt_node.results = []
+        
+        messages = [prompt_node.prompt for prompt_node in prompt_nodes]
+        
+        for defense in self.defenses:
+            # Generate responses in batch
+            responses = self.target.generate_batch(messages, target=defense)
+
+            # Batch predict for all responses
+            predictions = self.predictor.predict(responses, defense['access_code'])
+            
+            # Append responses and results to prompt nodes
+            for prompt_node, response, prediction in zip(prompt_nodes, responses, predictions):
+                prompt_node.response.append(response)
+                prompt_node.results.append(prediction)
             print(responses)
-            # Assign responses and results to valid prompt nodes
-            for i, response in zip(valid_prompt_indices, responses):
-                prompt_nodes[i].response = [response]
-                prompt_nodes[i].results = self.predictor.predict([response])
-                
-            # Assign empty responses and results to invalid prompt nodes
-            for i in range(len(prompt_nodes)):
-                if i not in valid_prompt_indices:
-                    prompt_nodes[i].response = []
-                    prompt_nodes[i].results = []
-        else:
-            # If all prompts are invalid, set empty responses and results
-            for prompt_node in prompt_nodes:
-                prompt_node.response = []
-                prompt_node.results = []
 
     def update(self, prompt_nodes: 'list[PromptNode]'):
         self.current_iteration += 1
