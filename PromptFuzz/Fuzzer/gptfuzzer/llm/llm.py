@@ -1,5 +1,4 @@
 from openai import OpenAI
-from fastchat.model import load_model, get_conversation_template
 import logging
 import time
 import concurrent.futures
@@ -22,8 +21,7 @@ class OpenAILLM(LLM):
     def __init__(self,
                  model_path,
                  api_key=None,
-                 system_message=None,
-                 target=None
+                 system_message=None
                 ):
         super().__init__()
 
@@ -31,16 +29,18 @@ class OpenAILLM(LLM):
             raise ValueError('OpenAI API key should start with sk-')
         self.client = OpenAI(api_key = api_key)
         self.model_path = model_path
-        self.post_prompt = target['post_prompt'] if target is not None else None
+        self.post_prompt = None
         self.system_message = system_message if system_message is not None else "You are a helpful assistant."
 
-    def generate(self, prompt, temperature=0, max_tokens=512, n=1, max_trials=1, failure_sleep_time=1):
-        if self.post_prompt is None:
+    def generate(self, prompt, temperature=0, max_tokens=512, n=1, max_trials=1, failure_sleep_time=1, target=None):
+        if target is None:
             messages = [
                 {"role": "system", "content": self.system_message},
                 {"role": "user", "content": prompt}
             ]
         else:
+            self.system_message = target['pre_prompt']
+            self.post_prompt = target['post_prompt']
             messages = [
                 {"role": "system", "content": self.system_message},
                 {"role": "user", "content": prompt},
@@ -63,11 +63,11 @@ class OpenAILLM(LLM):
 
         return [" " for _ in range(n)]
 
-    def generate_batch(self, prompts, temperature=0, max_tokens=512, n=1, max_trials=1, failure_sleep_time=1):
+    def generate_batch(self, prompts, temperature=0, max_tokens=512, n=1, max_trials=1, failure_sleep_time=1, target=None):
         results = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {executor.submit(self.generate, prompt, temperature, max_tokens, n,
-                                       max_trials, failure_sleep_time): prompt for prompt in prompts}
+                                       max_trials, failure_sleep_time, target): prompt for prompt in prompts}
             for future in concurrent.futures.as_completed(futures):
                 results.extend(future.result())
         return results
