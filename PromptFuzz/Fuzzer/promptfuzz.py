@@ -6,12 +6,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from fastchat.model import add_model_args
 import argparse
 import pandas as pd
+import json
 from gptfuzzer.fuzzer.selection import MCTSExploreSelectPolicy
 from gptfuzzer.fuzzer.mutator import (
-    MutateRandomSinglePolicy, OpenAIMutatorCrossOver, OpenAIMutatorExpand,
+    MutateRandomSinglePolicy, NoMutatePolicy, OpenAIMutatorCrossOver, OpenAIMutatorExpand,
     OpenAIMutatorGenerateSimilar, OpenAIMutatorRephrase, OpenAIMutatorShorten)
 from gptfuzzer.fuzzer import GPTFuzzer
-from gptfuzzer.llm import OpenAILLM, LocalVLLM, LocalLLM, PaLM2LLM, ClaudeLLM
+from gptfuzzer.utils.predict import MatchPredictor, AccessGrantedPredictor
+from gptfuzzer.llm import OpenAILLM, LocalVLLM, LocalLLM
 from PromptFuzz.utils import constants
 
 import random
@@ -25,38 +27,58 @@ httpx_logger.setLevel(logging.WARNING)
 def run_fuzzer(args):
     
     target = f'./Datasets/{args.mode}_{args.phase}.jsonl'
-    # read the dataset
-    df = pd.read_json(target, lines=True)
+    # read the jsnol file
+    with open(target, 'r') as f:
+        targets = [json.loads(line) for line in f.readlines()]
+    target = targets[args.index]
+        
+    mutate_model = OpenAILLM(args.model_path, args.openai_key)
+    target_model = OpenAILLM(args.model_path, args.openai_key, target=target)
     
-    openai_model = OpenAILLM(args.model_path, args.openai_key)
-
-    save_path = f'./Results/{args.phase}/{args.mode}'
-    if args.add_eos:
-        save_path = f'./Results/{args.target_model}/GPTFuzzer_eos/{args.index}.csv'
-    
+    if args.mode == 'hijacking':
+        predictor = AccessGrantedPredictor()
+    elif args.mode == 'extraction':
+        predictor = MatchPredictor(target['access_code'])
+    save_path = f'./Results/{args.phase}/{args.mode}/{args.index}.csv'    
     print("The save path is: ", save_path)
+    # check if the directory exists
+    if not os.path.exists(os.path.dirname(save_path)):
+        os.makedirs(os.path.dirname(save_path))
+    
+    if args.phase == 'evaluate':
+        initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+    elif args.phase == 'focus':
+        initial_seed_path = f'./Datasets/{args.mode}_focus_seed.jsonl'
+    with open(initial_seed_path, 'r') as f:
+        initial_seed = [json.loads(line)['attack'] for line in f.readlines()]
+    
+    mutate_policy = MutateRandomSinglePolicy([
+            OpenAIMutatorCrossOver(mutate_model), 
+            OpenAIMutatorExpand(mutate_model),
+            OpenAIMutatorGenerateSimilar(mutate_model),
+            OpenAIMutatorRephrase(mutate_model),
+            OpenAIMutatorShorten(mutate_model)],
+            concatentate=True,
+        )
+    
+    if args.no_mutate:
+        mutate_policy = NoMutatePolicy()
+        args.energy = 1
+        args.max_query = len(initial_seed)
+        args.max_jailbreak = 9999999
 
     fuzzer = GPTFuzzer(
-        questions=questions,
-        target=openai_model,
-        predictor=roberta_model,
+        questions=[target['pre_prompt']],
+        target=target_model,
+        predictor=predictor,
         initial_seed=initial_seed,
-        mutate_policy=MutateRandomSinglePolicy([
-            OpenAIMutatorCrossOver(openai_model), 
-            OpenAIMutatorExpand(openai_model),
-            OpenAIMutatorGenerateSimilar(openai_model),
-            OpenAIMutatorRephrase(openai_model),
-            OpenAIMutatorShorten(openai_model)],
-            concatentate=True,
-        ),
+        result_file=save_path,
+        mutate_policy=mutate_policy,
         select_policy=MCTSExploreSelectPolicy(),
         energy=args.energy,
         max_jailbreak=args.max_jailbreak,
         max_query=args.max_query,
-        generate_in_batch=False,
+        generate_in_batch=True,
     )
 
     fuzzer.run()
-
-
-
