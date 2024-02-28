@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from .mutator import Mutator, MutatePolicy
     from .selection import SelectPolicy
 
-from gptfuzzer.llm import LLM, LocalLLM
+from gptfuzzer.llm import LLM
 from gptfuzzer.utils.template import synthesis_message
 from gptfuzzer.utils.predict import Predictor
 import warnings
@@ -111,8 +111,6 @@ class GPTFuzzer:
         self.generate_in_batch = False
         if len(self.questions) > 0 and generate_in_batch is True:
             self.generate_in_batch = True
-            if isinstance(self.target, LocalLLM):
-                warnings.warn("IMPORTANT! Hugging face inference with batch generation has the problem of consistency due to pad tokens. We do not suggest doing so and you may experience (1) degraded output quality due to long padding tokens, (2) inconsistent responses due to different number of padding tokens during reproduction. You should turn off generate_in_batch or use vllm batch inference.")
         self.setup()
 
     def setup(self):
