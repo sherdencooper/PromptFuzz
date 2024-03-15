@@ -73,7 +73,7 @@ class UCBSelectPolicy(SelectPolicy):
         succ_num = sum([prompt_node.num_jailbreak
                         for prompt_node in prompt_nodes])
         self.rewards[self.last_choice_index] += \
-            succ_num / len(self.fuzzer.questions)
+            succ_num / len(self.fuzzer.defenses)
 
 
 class MCTSExploreSelectPolicy(SelectPolicy):
@@ -128,7 +128,7 @@ class MCTSExploreSelectPolicy(SelectPolicy):
 
         last_choice_node = self.fuzzer.prompt_nodes[self.last_choice_index]
         for prompt_node in reversed(self.mctc_select_path):
-            reward = succ_num / (len(self.fuzzer.questions)
+            reward = succ_num / (len(self.fuzzer.defenses)
                                  * len(prompt_nodes))
             self.rewards[prompt_node.index] += reward * \
                 max(self.beta, (1 - 0.1 * last_choice_node.level))
