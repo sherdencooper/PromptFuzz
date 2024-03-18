@@ -2,7 +2,8 @@
 
 PYTHON_SCRIPT="./Experiment/run.py"
 PHASE="evaluate"
-MODE="hijacking"
+#MODE="hijacking"
+MODE="extraction"
 NO_MUTATE="False"
 ALL_DEFENSES="True"
 

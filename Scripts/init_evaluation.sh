@@ -2,7 +2,8 @@
 
 PYTHON_SCRIPT="./Experiment/run.py"
 PHASE="init"
-MODE="hijacking"
+#MODE="hijacking"
+MODE="extraction"
 NO_MUTATE="True"
 
 # Set the log path
@@ -19,10 +20,10 @@ run_python_script() {
 }
 
 # Start the jobs with a limit of 2 tasks in parallel
-for index in {0..10}; do
+for index in {2..3}; do
     run_python_script $index &
     ((index++))
-    [ $((index % 2)) -eq 0 ] && wait
+    [ $((index % 8)) -eq 0 ] && wait
 done
 
 # Wait for all background jobs to finish

@@ -8,6 +8,14 @@ import argparse
 from PromptFuzz.Fuzzer.promptfuzz import run_fuzzer
 from PromptFuzz.utils import constants
 
+
+os.environ["http_proxy"] = "http://192.168.124.18:7890"
+os.environ["https_proxy"] = "http://192.168.124.18:7890"
+
+#os.environ["http_proxy"] = "http://192.168.5.213:7890"
+#os.environ["https_proxy"] = "http://192.168.5.213:7890"
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Fuzzing parameters')
     parser.add_argument('--index', type=int, default=0, help='The index of the target prompt')
@@ -21,8 +29,8 @@ if __name__ == "__main__":
                         default=999999, help='The maximum jailbreak number')
     parser.add_argument('--energy', type=int, default=1,
                         help='The energy of the fuzzing process')
-    parser.add_argument("--no_mutate", type=bool, default=True)
-    parser.add_argument("--all_defenses", type=bool, default=False)
+    parser.add_argument("--no_mutate", type=str, default=True)
+    parser.add_argument("--all_defenses", type=str, default=False)
 
     args = parser.parse_args()
     
@@ -39,14 +47,13 @@ if __name__ == "__main__":
     # read the jsnol file
     with open(defense, 'r') as f:
         defenses = [json.loads(line) for line in f.readlines()]
-        
-    if args.all_defenses:
+     
+    if args.all_defenses=="True":
         args.defenses = defenses
     else:
         defenses = defenses[args.index]
         args.defenses = [defenses]
-    
-    if args.no_mutate:
+    if args.no_mutate=="True":
         assert args.phase == 'init'
         
     run_fuzzer(args)
