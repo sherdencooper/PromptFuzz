@@ -20,6 +20,7 @@ httpx_logger: logging.Logger = logging.getLogger("httpx")
 # disable httpx logging
 httpx_logger.setLevel(logging.WARNING)
 
+#import nltk
 
 def run_fuzzer(args):
         
@@ -46,7 +47,23 @@ def run_fuzzer(args):
         
     with open(initial_seed_path, 'r') as f:
         initial_seed = [json.loads(line)['attack'] for line in f.readlines()]
-    
+        #initial_seed = []
+        #for line in f.readlines():
+        #    data = json.loads(line)
+        #    #words = nltk.word_tokenize(data['attack'])
+        #    words = data['attack'].split(' ')
+        #    if len(words) == 0:
+        #        continue            
+        #    new_words = [words[0]]
+        #    for i in range(1,len(words)):
+        #        if words[i]!=words[i-1]:
+        #            new_words.append(words[i])
+        #    attack = ' '.join(new_words)
+        #    initial_seed.append(attack)
+                    
+
+            
+ 
     mutate_policy = MutateRandomSinglePolicy([
             OpenAIMutatorCrossOver(mutate_model), 
             OpenAIMutatorExpand(mutate_model),
