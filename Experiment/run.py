@@ -21,8 +21,8 @@ if __name__ == "__main__":
                         default=999999, help='The maximum jailbreak number')
     parser.add_argument('--energy', type=int, default=1,
                         help='The energy of the fuzzing process')
-    parser.add_argument("--no_mutate", type=bool, default=True)
-    parser.add_argument("--all_defenses", type=bool, default=False)
+    parser.add_argument("--no_mutate", type=str, default="True")
+    parser.add_argument("--all_defenses", type=str, default="False")
 
     args = parser.parse_args()
     
