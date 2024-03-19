@@ -73,6 +73,7 @@ class GPTFuzzer:
                  energy: int = 1,
                  result_file: str = None,
                  generate_in_batch: bool = False,
+                 update_pool: bool = True,
                  ):
 
         self.defenses: 'list[dict]' = defenses
@@ -108,6 +109,7 @@ class GPTFuzzer:
         self.writter.writerow(
             ['index', 'prompt', 'response', 'parent', 'results'])
         self.generate_in_batch = True
+        self.update_pool = update_pool
         self.setup()
 
     def setup(self):
@@ -167,7 +169,8 @@ class GPTFuzzer:
         for prompt_node in prompt_nodes:
             if prompt_node.num_jailbreak > 0:
                 prompt_node.index = len(self.prompt_nodes)
-                self.prompt_nodes.append(prompt_node)
+                if self.update_pool:
+                    self.prompt_nodes.append(prompt_node)
                 self.writter.writerow([prompt_node.index, prompt_node.prompt,
                                        prompt_node.response, prompt_node.parent.index, prompt_node.results])
 
