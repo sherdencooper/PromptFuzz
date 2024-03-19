@@ -73,6 +73,7 @@ class GPTFuzzer:
                  energy: int = 1,
                  result_file: str = None,
                  generate_in_batch: bool = False,
+                 update_pool: bool = True,
                  ):
 
         self.defenses: 'list[dict]' = defenses
@@ -106,8 +107,10 @@ class GPTFuzzer:
         self.raw_fp = open(result_file, 'w', buffering=1)
         self.writter = csv.writer(self.raw_fp)
         self.writter.writerow(
-            ['index', 'prompt', 'response', 'parent', 'results'])
+            ['index', 'prompt', 'response', 'parent', 'results', 'mutation', 'query'])
+        self.mutation = None
         self.generate_in_batch = True
+        self.update_pool = update_pool
         self.setup()
 
     def setup(self):
@@ -130,7 +133,8 @@ class GPTFuzzer:
         try:
             while not self.is_stop():
                 seed = self.select_policy.select()
-                mutated_results = self.mutate_policy.mutate_single(seed)
+                mutated_results, mutator_name = self.mutate_policy.mutate_single(seed)
+                self.mutation = mutator_name
                 self.evaluate(mutated_results)
                 self.update(mutated_results)
                 self.log()
@@ -167,9 +171,11 @@ class GPTFuzzer:
         for prompt_node in prompt_nodes:
             if prompt_node.num_jailbreak > 0:
                 prompt_node.index = len(self.prompt_nodes)
-                self.prompt_nodes.append(prompt_node)
+                if self.update_pool:
+                    self.prompt_nodes.append(prompt_node)
                 self.writter.writerow([prompt_node.index, prompt_node.prompt,
-                                       prompt_node.response, prompt_node.parent.index, prompt_node.results])
+                                       prompt_node.response, prompt_node.parent.index, prompt_node.results,
+                                       self.mutation, self.current_query])
 
             self.current_jailbreak += prompt_node.num_jailbreak
             self.current_query += prompt_node.num_query
