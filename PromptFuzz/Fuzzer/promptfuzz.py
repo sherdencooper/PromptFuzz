@@ -31,7 +31,7 @@ def run_fuzzer(args):
     elif args.mode == 'extraction':
         predictor = MatchPredictor()
         
-    save_path = f'./Results/{args.phase}/{args.mode}/{args.index}.csv'    
+    save_path = f'./Results/{args.phase}/{args.mode}/{args.index}.csv' if not args.all_defenses else f'./Results/{args.phase}/{args.mode}/all_results.csv'    
     print("The save path is: ", save_path)
     # check if the directory exists
     if not os.path.exists(os.path.dirname(save_path)):
@@ -53,7 +53,7 @@ def run_fuzzer(args):
             OpenAIMutatorGenerateSimilar(mutate_model),
             OpenAIMutatorRephrase(mutate_model),
             OpenAIMutatorShorten(mutate_model)],
-            concatentate=True,
+            concatentate=False,
         )
     select_policy = MCTSExploreSelectPolicy()
     
@@ -63,6 +63,14 @@ def run_fuzzer(args):
         args.max_query = len(initial_seed)
         args.max_jailbreak = 9999999
         select_policy = RoundRobinSelectPolicy()
+        
+    if args.phase == 'evaluate':
+        args.energy = 1
+        args.max_jailbreak = 9999999
+        args.max_query = len(initial_seed) * len(args.defenses) * 10
+        select_policy = RoundRobinSelectPolicy()
+
+    update_pool = True if args.phase == 'focus' else False
 
     fuzzer = GPTFuzzer(
         defenses=args.defenses,
@@ -75,6 +83,7 @@ def run_fuzzer(args):
         energy=args.energy,
         max_jailbreak=args.max_jailbreak,
         max_query=args.max_query,
+        update_pool=update_pool,
     )
 
     fuzzer.run()

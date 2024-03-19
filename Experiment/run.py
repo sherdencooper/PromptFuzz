@@ -22,18 +22,29 @@ if __name__ == "__main__":
     parser.add_argument('--energy', type=int, default=1,
                         help='The energy of the fuzzing process')
     parser.add_argument("--no_mutate", type=bool, default=True)
+    parser.add_argument("--all_defenses", type=bool, default=False)
 
     args = parser.parse_args()
     
     if args.openai_key is None:
         args.openai_key = constants.openai_key
         
-    defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+    if args.phase == 'init':
+        defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+    elif args.phase == 'focus':
+        defense = f'./Datasets/{args.mode}_focus_defense.jsonl'
+    elif args.phase == 'evaluate':
+        defense = f'./Datasets/{args.mode}_evaluate_defense.jsonl'
+        
     # read the jsnol file
     with open(defense, 'r') as f:
         defenses = [json.loads(line) for line in f.readlines()]
-    defenses = defenses[args.index]
-    args.defenses = [defenses]
+        
+    if args.all_defenses:
+        args.defenses = defenses
+    else:
+        defenses = defenses[args.index]
+        args.defenses = [defenses]
     
     if args.no_mutate:
         assert args.phase == 'init'
