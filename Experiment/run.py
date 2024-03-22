@@ -21,10 +21,10 @@ if __name__ == "__main__":
                         default=999999, help='The maximum jailbreak number')
     parser.add_argument('--energy', type=int, default=1,
                         help='The energy of the fuzzing process')
-    parser.add_argument("--no_mutate", type=bool, default=True)
-    parser.add_argument("--all_defenses", type=bool, default=False)
-    parser.add_argument("--concatenate", type=bool, default=False)
-    parser.add_argument("--few_shot", type=bool, default=False)
+    parser.add_argument("--no_mutate", action='store_true', help='Do not mutate the prompt')
+    parser.add_argument("--all_defenses", action='store_true', help='Run all defenses')
+    parser.add_argument("--concatenate", action='store_true', help='Concatenate the prompt')
+    parser.add_argument("--few_shot", action='store_true', help='Use few shot learning')
     parser.add_argument("--few_shot_num", type=int, default=3)
 
     args = parser.parse_args()
