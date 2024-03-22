@@ -75,7 +75,7 @@ def run_fuzzer(args):
         select_policy = RoundRobinSelectPolicy()
         
     if args.phase == 'focus':
-        args.energy = 3
+        args.energy = 5
         args.max_jailbreak = 9999999
         args.max_query =  len(args.defenses) * 1000
         select_policy = MCTSExploreSelectPolicy()
