@@ -214,7 +214,10 @@ class MutateRandomSinglePolicy(MutatePolicy):
         if self.concatentate:
             results = [result + prompt_node.prompt  for result in results]
 
-        return [PromptNode(self.fuzzer, result, parent=prompt_node, mutator=mutator) for result in results]
+        # convert the mutator(function) to a string
+        mutator_name = mutator.__class__.__name__
+        
+        return [PromptNode(self.fuzzer, result, parent=prompt_node, mutator=mutator) for result in results], mutator_name
 
 
 class NoMutatePolicy(MutatePolicy):
@@ -223,4 +226,4 @@ class NoMutatePolicy(MutatePolicy):
 
     def mutate_single(self, prompt_node: 'PromptNode') -> 'list[PromptNode]':
         # create a new prompt node with the same prompt as the input prompt node
-        return [PromptNode(self.fuzzer, prompt_node.prompt, parent=prompt_node, mutator=None)]
+        return [PromptNode(self.fuzzer, prompt_node.prompt, parent=prompt_node, mutator=None)], "NoMutatePolicy"
