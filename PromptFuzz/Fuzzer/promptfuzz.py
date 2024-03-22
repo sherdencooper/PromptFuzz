@@ -74,7 +74,7 @@ def run_fuzzer(args):
         )
     select_policy = MCTSExploreSelectPolicy()
     
-    if args.no_mutate:
+    if args.no_mutate == "True":
         mutate_policy = NoMutatePolicy()
         args.energy = 1
         args.max_query = len(initial_seed)
