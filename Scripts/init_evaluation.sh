@@ -6,6 +6,14 @@ PHASE="init"
 MODE="extraction"
 NO_MUTATE="True"
 
+
+# Check if NO_MUTATE should be set to true
+NO_MUTATE_FLAG=""
+
+if [ "$NO_MUTATE" = "True" ]; then
+  NO_MUTATE_FLAG="--no_mutate"
+fi
+
 # Set the log path
 LOG_PATH="Logs/${PHASE}/${MODE}"
 
@@ -15,7 +23,7 @@ mkdir -p "$LOG_PATH"
 # Function to run the Python script
 run_python_script() {
     local index=$1
-    python -u "$PYTHON_SCRIPT" --index $index --phase $PHASE --mode $MODE --no_mutate $NO_MUTATE > "${LOG_PATH}/${index}.log" 2>&1
+    python -u "$PYTHON_SCRIPT" --index $index --phase $PHASE --mode $MODE $NO_MUTATE_FLAG > "${LOG_PATH}/${index}.log" 2>&1
     echo "Task $index finished."
 }
 
