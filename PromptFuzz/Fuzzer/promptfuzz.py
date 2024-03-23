@@ -6,7 +6,7 @@ import pandas as pd
 import json
 from gptfuzzer.fuzzer.selection import MCTSExploreSelectPolicy, RoundRobinSelectPolicy
 from gptfuzzer.fuzzer.mutator import (
-    MutateRandomSinglePolicy, NoMutatePolicy, OpenAIMutatorCrossOver, OpenAIMutatorExpand,
+    MutateRandomSinglePolicy, NoMutatePolicy, MutateWeightedSamplingPolicy, OpenAIMutatorCrossOver, OpenAIMutatorExpand,
     OpenAIMutatorGenerateSimilar, OpenAIMutatorRephrase, OpenAIMutatorShorten)
 from gptfuzzer.fuzzer import GPTFuzzer
 from gptfuzzer.utils.predict import MatchPredictor, AccessGrantedPredictor
@@ -47,30 +47,18 @@ def run_fuzzer(args):
         
     with open(initial_seed_path, 'r') as f:
         initial_seed = [json.loads(line)['attack'] for line in f.readlines()]
-        #initial_seed = []
-        #for line in f.readlines():
-        #    data = json.loads(line)
-        #    #words = nltk.word_tokenize(data['attack'])
-        #    words = data['attack'].split(' ')
-        #    if len(words) == 0:
-        #        continue            
-        #    new_words = [words[0]]
-        #    for i in range(1,len(words)):
-        #        if words[i]!=words[i-1]:
-        #            new_words.append(words[i])
-        #    attack = ' '.join(new_words)
-        #    initial_seed.append(attack)
-                    
-
-            
- 
-    mutate_policy = MutateRandomSinglePolicy([
+    
+    mutator_list = [
             OpenAIMutatorCrossOver(mutate_model), 
             OpenAIMutatorExpand(mutate_model),
             OpenAIMutatorGenerateSimilar(mutate_model),
             OpenAIMutatorRephrase(mutate_model),
-            OpenAIMutatorShorten(mutate_model)],
-            concatentate=False,
+            OpenAIMutatorShorten(mutate_model)
+            ]
+    
+    mutate_policy = MutateRandomSinglePolicy(
+            mutator_list,
+            concatentate=args.concatenate,
         )
     select_policy = MCTSExploreSelectPolicy()
     
@@ -86,7 +74,27 @@ def run_fuzzer(args):
         args.max_jailbreak = 9999999
         args.max_query = len(initial_seed) * len(args.defenses) * 10
         select_policy = RoundRobinSelectPolicy()
-
+        
+    if args.phase == 'focus':
+        args.energy = 5
+        args.max_jailbreak = 9999999
+        args.max_query =  len(args.defenses) * 1000
+        select_policy = MCTSExploreSelectPolicy()
+        
+        if args.mode == 'hijacking':
+            weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+        elif args.mode == 'extraction':
+            weights = [0.1, 0.1, 0.4, 0.2, 0.2]
+        few_shot_examples = pd.read_csv(f'./Datasets/{args.mode}_evaluate_example.csv')
+        mutate_policy = MutateWeightedSamplingPolicy(
+            mutator_list,
+            weights=weights,
+            few_shot=args.few_shot,
+            few_shot_num=args.few_shot_num,
+            few_shot_file=few_shot_examples,
+            concatentate=args.concatenate,
+        )
+        
     update_pool = True if args.phase == 'focus' else False
 
     fuzzer = GPTFuzzer(
