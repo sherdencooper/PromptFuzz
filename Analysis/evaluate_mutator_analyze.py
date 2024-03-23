@@ -16,7 +16,7 @@ def analyze(csv_path):
             mutator_list.append(mutator)
             mutator_success_count[attack_id] = mutator_list
     results = []
-    mutators = ['OpenAIMutatorCrossOver','OpenAIMutatorExpand','OpenAIGenerateSimilar','OpenAIMutatorRephrase','OpenAIMutatorShorten']
+    mutators = ['OpenAIMutatorCrossOver','OpenAIMutatorExpand','OpenAIMutatorGenerateSimilar','OpenAIMutatorRephrase','OpenAIMutatorShorten']
     for attack_id in mutator_success_count.keys():
         mutator_list = mutator_success_count[attack_id]
         counted_elements = Counter(mutator_list)
@@ -28,7 +28,7 @@ def analyze(csv_path):
     
     with open('../Analyze_results/evaluate_mutator_result.csv','w') as f:
         writer = csv.writer(f)
-        writer.writerow(['AttackID','OpenAIMutatorCrossOver','OpenAIMutatorExpand','OpenAIGenerateSimilar','OpenAIMutatorRephrase','OpenAIMutatorShorten'])
+        writer.writerow(['AttackID','OpenAIMutatorCrossOver','OpenAIMutatorExpand','OpenAIMutatorGenerateSimilar','OpenAIMutatorRephrase','OpenAIMutatorShorten'])
         for result in results:
             writer.writerow(result)
         

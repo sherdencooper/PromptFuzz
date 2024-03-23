@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Fuzzing parameters')
     parser.add_argument('--index', type=int, default=0, help='The index of the target prompt')
     parser.add_argument('--phase', choices=['evaluate', 'focus', 'init'], default='init', help='The phase of the fuzzing process')
-    parser.add_argument('--mode', choices=['hijacking', 'extraction'], default='hijacking', help='The mode of the fuzzing process')
+    parser.add_argument('--mode', choices=['hijacking', 'extraction'], default='extraction', help='The mode of the fuzzing process')
     parser.add_argument('--openai_key', type=str, default=None, help='OpenAI API Key')
     parser.add_argument('--model_path', type=str, default='gpt-3.5-turbo-0125', help='target model path')
     parser.add_argument('--max_query', type=int, default=1000,
@@ -29,8 +29,11 @@ if __name__ == "__main__":
                         default=999999, help='The maximum jailbreak number')
     parser.add_argument('--energy', type=int, default=1,
                         help='The energy of the fuzzing process')
-    parser.add_argument("--no_mutate", type=str, default=True)
-    parser.add_argument("--all_defenses", type=str, default=False)
+    parser.add_argument("--no_mutate", type=bool, default=True)
+    parser.add_argument("--all_defenses", type=bool, default=False)
+    parser.add_argument("--concatenate", type=bool, default=False)
+    parser.add_argument("--few_shot", type=bool, default=False)
+    parser.add_argument("--few_shot_num", type=int, default=3)
 
     args = parser.parse_args()
     
@@ -48,12 +51,12 @@ if __name__ == "__main__":
     with open(defense, 'r') as f:
         defenses = [json.loads(line) for line in f.readlines()]
      
-    if args.all_defenses=="True":
+    if args.all_defenses:
         args.defenses = defenses
     else:
         defenses = defenses[args.index]
         args.defenses = [defenses]
-    if args.no_mutate=="True":
+    if args.no_mutate:
         assert args.phase == 'init'
         
     run_fuzzer(args)
