@@ -2,8 +2,9 @@ from openai import OpenAI
 import logging
 import time
 import concurrent.futures
+import openai
 
-
+import requests
 
 class LLM:
     def __init__(self):
@@ -32,7 +33,7 @@ class OpenAILLM(LLM):
         self.post_prompt = None
         self.system_message = system_message if system_message is not None else "You are a helpful assistant."
 
-    def generate(self, prompt, temperature=0, max_tokens=512, n=1, max_trials=10, failure_sleep_time=30, target=None):
+    def generate(self, prompt, temperature=0, max_tokens=512, n=1, max_trials=10, failure_sleep_time=10, target=None):
         if target is None:
             messages = [
                 {"role": "system", "content": self.system_message},
@@ -54,16 +55,27 @@ class OpenAILLM(LLM):
                     temperature=temperature,
                     max_tokens=max_tokens,
                     n=n,
+                    timeout=60,
                 )
                 return [results.choices[i].message.content for i in range(n)]
-            except Exception as e:
+            
+            except openai.APITimeoutError as e:
+                print(e)
                 logging.warning(
                     f"OpenAI API call failed due to {e}. Retrying {_+1} / {max_trials} times...")
+                logging.warning(f"failed prompt is: {prompt}")
+                time.sleep(failure_sleep_time)
+                return [" " for _ in range(n)]
+            except Exception as e:
+                print(e)
+                logging.warning(
+                    f"OpenAI API call failed due to {e}. Retrying {_+1} / {max_trials} times...")
+                logging.warning(f"failed prompt is: {prompt}")
                 time.sleep(failure_sleep_time)
 
         return [" " for _ in range(n)]
 
-    def generate_batch(self, prompts, temperature=0, max_tokens=512, n=1, max_trials=10, failure_sleep_time=30, target=None):
+    def generate_batch(self, prompts, temperature=0, max_tokens=512, n=1, max_trials=10, failure_sleep_time=10, target=None):
         results = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {executor.submit(self.generate, prompt, temperature, max_tokens, n,

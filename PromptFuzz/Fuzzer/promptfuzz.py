@@ -82,9 +82,9 @@ def run_fuzzer(args):
         select_policy = MCTSExploreSelectPolicy()
         
         if args.mode == 'hijacking':
-            weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+            weights = [0.23, 0.19, 0.13, 0.24, 0.21]
         elif args.mode == 'extraction':
-            weights = [0.1, 0.1, 0.4, 0.2, 0.2]
+            weights = [0.23, 0.19, 0.13, 0.24, 0.21]
         few_shot_examples = pd.read_csv(f'./Datasets/{args.mode}_evaluate_example.csv')
         mutate_policy = MutateWeightedSamplingPolicy(
             mutator_list,
