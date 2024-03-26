@@ -71,6 +71,9 @@ class OpenAIMutatorGenerateSimilar(OpenAIMutatorBase):
 
     def generate_similar_few_shot(self, seed: str, few_shot_original: list[str], few_shot_mutated: list[str], few_shot_num: int):
         few_shot_examples = ""
+        print("few_shot_original:{}".format(few_shot_original))
+        print("few_shot_mutated:{}".format(few_shot_mutated))
+        print("few_shot_num:{}".format(few_shot_num))
         for original, mutated in zip(few_shot_original[-few_shot_num:], few_shot_mutated[-few_shot_num:]):
             few_shot_examples += (f"====Test case begins====\n{original}\n====Test case ends====\n"
                                   f"====Generated case begins====\n{mutated}\n====Generated case ends====\n")
