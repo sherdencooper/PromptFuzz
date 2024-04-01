@@ -32,7 +32,7 @@ class OpenAILLM(LLM):
         self.post_prompt = None
         self.system_message = system_message if system_message is not None else "You are a helpful assistant."
 
-    def generate(self, prompt, temperature=0, max_tokens=512, n=1, max_trials=1, failure_sleep_time=1, target=None):
+    def generate(self, prompt, temperature=0, max_tokens=512, n=1, max_trials=10, failure_sleep_time=30, target=None):
         if target is None:
             messages = [
                 {"role": "system", "content": self.system_message},
@@ -63,7 +63,7 @@ class OpenAILLM(LLM):
 
         return [" " for _ in range(n)]
 
-    def generate_batch(self, prompts, temperature=0, max_tokens=512, n=1, max_trials=1, failure_sleep_time=1, target=None):
+    def generate_batch(self, prompts, temperature=0, max_tokens=512, n=1, max_trials=10, failure_sleep_time=30, target=None):
         results = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {executor.submit(self.generate, prompt, temperature, max_tokens, n,
