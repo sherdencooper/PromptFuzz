@@ -74,6 +74,8 @@ class GPTFuzzer:
                  result_file: str = None,
                  generate_in_batch: bool = False,
                  update_pool: bool = True,
+                 dynamic_allocate: bool = False,
+                 threshold_coefficient: float = 0.5,
                  ):
 
         self.defenses: 'list[dict]' = defenses
@@ -111,6 +113,10 @@ class GPTFuzzer:
         self.mutation = None
         self.generate_in_batch = True
         self.update_pool = update_pool
+        self.dynamic_allocate = dynamic_allocate
+        self.threshold = 0
+        self.highest_jailbreak = 0
+        self.threshold_coefficient = threshold_coefficient
         self.setup()
 
     def setup(self):
@@ -151,18 +157,28 @@ class GPTFuzzer:
             prompt_node.results = []
         
         messages = [prompt_node.prompt for prompt_node in prompt_nodes]
-        
-        for defense in self.defenses:
-            # Generate responses in batch
-            responses = self.target.generate_batch(messages, target=defense)
+        early_termination_indices = set()
 
-            # Batch predict for all responses
+        for defense_index, defense in enumerate(self.defenses):
+            # Skip evaluation for prompts marked for early termination
+            active_messages = [messages[i] for i in range(len(messages)) if i not in early_termination_indices]
+            active_prompt_nodes = [prompt_node for i, prompt_node in enumerate(prompt_nodes) if i not in early_termination_indices]
+
+            # Generate responses in batch for active messages
+            responses = self.target.generate_batch(active_messages, target=defense)
+
+            # Batch predict for all active responses
             predictions = self.predictor.predict(responses, defense['access_code'])
-            
-            # Append responses and results to prompt nodes
-            for prompt_node, response, prediction in zip(prompt_nodes, responses, predictions):
+
+            # Append responses and results to prompt nodes, and check for early termination
+            for i, (prompt_node, response, prediction) in enumerate(zip(active_prompt_nodes, responses, predictions)):
                 prompt_node.response.append(response)
                 prompt_node.results.append(prediction)
+
+                if self.dynamic_allocate and sum(prompt_node.results) + len(self.defenses) - defense_index - 1 < self.threshold:
+                    early_termination_indices.add(prompt_nodes.index(prompt_node))
+                    prompt_node.prompt = 'early termination'
+
             print(responses)
             if responses[0] == " ":
                 print(f'mutator:{self.mutation},prompt:{prompt_node.prompt},parent_index:{prompt_node.parent.index},parent_prompt:{prompt_node.parent.prompt}') 
@@ -173,7 +189,7 @@ class GPTFuzzer:
         self.current_iteration += 1
 
         for prompt_node in prompt_nodes:
-            if prompt_node.num_jailbreak > 0:
+            if prompt_node.prompt != 'early termination' and prompt_node.num_jailbreak > 0:
                 prompt_node.index = len(self.prompt_nodes)
                 if self.update_pool:
                     self.prompt_nodes.append(prompt_node)
@@ -185,8 +201,16 @@ class GPTFuzzer:
             self.current_query += prompt_node.num_query
             self.current_reject += prompt_node.num_reject
 
+            # Update the highest jailbreak count in history
+            if prompt_node.num_jailbreak > self.highest_jailbreak:
+                self.highest_jailbreak = prompt_node.num_jailbreak
+
         self.select_policy.update(prompt_nodes)
 
+        # Update the threshold if dynamic_allocate is enabled
+        if self.dynamic_allocate:
+            self.threshold = int(self.highest_jailbreak * self.threshold_coefficient)
+            
     def log(self):
         logging.info(
             f"Iteration {self.current_iteration}: {self.current_jailbreak} jailbreaks, {self.current_reject} rejects, {self.current_query} queries")

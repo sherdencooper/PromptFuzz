@@ -10,7 +10,7 @@ from gptfuzzer.fuzzer.mutator import (
     OpenAIMutatorGenerateSimilar, OpenAIMutatorRephrase, OpenAIMutatorShorten)
 from gptfuzzer.fuzzer import GPTFuzzer
 from gptfuzzer.utils.predict import MatchPredictor, AccessGrantedPredictor
-from gptfuzzer.llm import OpenAILLM
+from gptfuzzer.llm import OpenAILLM, OpenAIEmbeddingLLM
 from PromptFuzz.utils import constants
 
 import random
@@ -87,6 +87,7 @@ def run_fuzzer(args):
             weights = [0.23, 0.19, 0.13, 0.24, 0.21]
             #weights = [0.1, 0.1, 0.4, 0.2, 0.2]
         few_shot_examples = pd.read_csv(f'./Datasets/{args.mode}_evaluate_example.csv')
+        embedding_model = OpenAIEmbeddingLLM("text-embedding-ada-002", args.openai_key)
         mutate_policy = MutateWeightedSamplingPolicy(
             mutator_list,
             weights=weights,
@@ -94,6 +95,9 @@ def run_fuzzer(args):
             few_shot_num=args.few_shot_num,
             few_shot_file=few_shot_examples,
             concatentate=args.concatenate,
+            retrieval_method=args.retrieval_method,
+            cluster_num=args.cluster_num,
+            embedding_model=embedding_model,
         )
         
     update_pool = True if args.phase == 'focus' else False
@@ -110,6 +114,8 @@ def run_fuzzer(args):
         max_jailbreak=args.max_jailbreak,
         max_query=args.max_query,
         update_pool=update_pool,
+        dynamic_allocate=args.dynamic_allocate,
+        threshold_coefficient=args.threshold_coefficient
     )
 
     fuzzer.run()
