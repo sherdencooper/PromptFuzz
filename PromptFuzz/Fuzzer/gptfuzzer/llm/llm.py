@@ -82,3 +82,16 @@ class OpenAILLM(LLM):
             for future in concurrent.futures.as_completed(futures):
                 results.extend(future.result())
         return results
+
+class OpenAIEmbeddingLLM():
+    def __init__(self, model_path=None, api_key=None):
+        self.client = OpenAI(api_key = api_key)
+        self.model_path = model_path
+    
+    def get_embedding(self, prompt):
+        response = self.client.embeddings.create(
+            input=prompt,
+            model=self.model_path
+        )
+        
+        return response.data[0].embedding
