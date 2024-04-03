@@ -164,6 +164,10 @@ class GPTFuzzer:
                 prompt_node.response.append(response)
                 prompt_node.results.append(prediction)
             print(responses)
+            if responses[0] == " ":
+                print(f'mutator:{self.mutation},prompt:{prompt_node.prompt},parent_index:{prompt_node.parent.index},parent_prompt:{prompt_node.parent.prompt}') 
+                # no need further try
+                break                
 
     def update(self, prompt_nodes: 'list[PromptNode]'):
         self.current_iteration += 1
