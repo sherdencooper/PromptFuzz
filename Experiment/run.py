@@ -9,11 +9,9 @@ from PromptFuzz.Fuzzer.promptfuzz import run_fuzzer
 from PromptFuzz.utils import constants
 
 
-os.environ["http_proxy"] = "http://192.168.124.18:7890"
-os.environ["https_proxy"] = "http://192.168.124.18:7890"
+os.environ["http_proxy"] = "http://127.0.0.1:10809"
+os.environ["https_proxy"] = "http://127.0.0.1:10809"
 
-#os.environ["http_proxy"] = "http://192.168.5.213:7890"
-#os.environ["https_proxy"] = "http://192.168.5.213:7890"
 
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@ import time
 import concurrent.futures
 import openai
 
-import requests
 
 class LLM:
     def __init__(self):
@@ -64,7 +63,7 @@ class OpenAILLM(LLM):
                 logging.warning(
                     f"OpenAI API call failed due to {e}. Retrying {_+1} / {max_trials} times...")
                 logging.warning(f"failed prompt is: {prompt}")
-                time.sleep(failure_sleep_time)
+                #time.sleep(failure_sleep_time)
                 return [" " for _ in range(n)]
             except Exception as e:
                 print(e)
