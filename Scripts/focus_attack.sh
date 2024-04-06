@@ -5,7 +5,7 @@ PHASE="focus"
 MODE="extraction"
 NO_MUTATE="False"
 ALL_DEFENSES="True"
-RETRIEVAL_METHOD="cluster"
+RETRIEVAL_METHOD="cosine_similarity"
 CLUSTER_NUM=5
 THRESHOLD_COEFFICIENT=0.5
 FEW_SHOT="True"
@@ -35,7 +35,7 @@ if [ "$DYNAMIC_ALLOCATE" = "True" ]; then
 fi
 
 # Set the log path
-LOG_PATH="Logs/${PHASE}/${MODE}"
+LOG_PATH="Logs/${PHASE}/${MODE}/${RETRIEVAL_METHOD}"
 
 # Create the log directory if it does not exist
 mkdir -p "$LOG_PATH"

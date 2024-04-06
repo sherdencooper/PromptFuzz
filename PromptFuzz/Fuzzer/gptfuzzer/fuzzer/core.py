@@ -163,9 +163,14 @@ class GPTFuzzer:
             # Skip evaluation for prompts marked for early termination
             active_messages = [messages[i] for i in range(len(messages)) if i not in early_termination_indices]
             active_prompt_nodes = [prompt_node for i, prompt_node in enumerate(prompt_nodes) if i not in early_termination_indices]
-
+            
+            print(f"active_messages:{active_messages}")
+            if active_messages == []:
+                continue
+            
             # Generate responses in batch for active messages
             responses = self.target.generate_batch(active_messages, target=defense)
+            print(responses)
 
             # Batch predict for all active responses
             predictions = self.predictor.predict(responses, defense['access_code'])
@@ -179,7 +184,6 @@ class GPTFuzzer:
                     early_termination_indices.add(prompt_nodes.index(prompt_node))
                     prompt_node.prompt = 'early termination'
 
-            print(responses)
             if responses[0] == " ":
                 print(f'mutator:{self.mutation},prompt:{prompt_node.prompt},parent_index:{prompt_node.parent.index},parent_prompt:{prompt_node.parent.prompt}') 
                 # no need further try
