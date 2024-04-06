@@ -66,18 +66,15 @@ def run_fuzzer(args):
         mutate_policy = NoMutatePolicy()
         args.energy = 1
         args.max_query = len(initial_seed)
-        args.max_jailbreak = 9999999
         select_policy = RoundRobinSelectPolicy()
         
     if args.phase == 'evaluate':
         args.energy = 1
-        args.max_jailbreak = 9999999
         args.max_query = len(initial_seed) * len(args.defenses) * 10
         select_policy = RoundRobinSelectPolicy()
         
     if args.phase == 'focus':
         args.energy = 5
-        args.max_jailbreak = 9999999
         args.max_query =  len(args.defenses) * 1000
         select_policy = MCTSExploreSelectPolicy()
         
