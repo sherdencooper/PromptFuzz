@@ -2,9 +2,12 @@ import random
 from .core import GPTFuzzer, PromptNode
 from gptfuzzer.utils.openai import openai_request
 from gptfuzzer.utils.template import QUESTION_PLACEHOLDER
-from gptfuzzer.llm import OpenAILLM, LLM
+from gptfuzzer.llm import OpenAILLM, LLM, OpenAIEmbeddingLLM
 import argparse
 import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 class Mutator:
     def __init__(self, fuzzer: 'GPTFuzzer'):
@@ -332,16 +335,68 @@ class MutateWeightedSamplingPolicy(MutatePolicy):
                  few_shot: bool = False,
                  few_shot_num: int = 5,
                  few_shot_file: pd.DataFrame = None,
-                 concatentate: bool = True):
+                 concatentate: bool = True,
+                 retrieval_method: str = 'random',
+                 cluster_num: int = 5,
+                 embedding_model: 'OpenAIEmbeddingLLM' = None):
         super().__init__(mutators, fuzzer)
         self.weights = weights
         self.few_shot = few_shot
         self.few_shot_num = few_shot_num
         self.few_shot_file = few_shot_file
+        self.retrieval_method = retrieval_method
+        self.cluster_num = cluster_num
+        self.embedding_model = embedding_model
         assert len(mutators) == len(weights)
         
         self.concatentate = concatentate
+        if self.retrieval_method != 'random':
+            self.store_embeddings()
+        if self.retrieval_method == 'cluster':
+            self.store_cluster_labels()
+        
+    def store_embeddings(self):
+        # Check if embeddings already exist
+        if 'embedding' not in self.few_shot_file.columns:
+            # Get embeddings for all prompts
+            self.few_shot_file['embedding'] = self.few_shot_file['prompt'].apply(lambda x: self.embedding_model.get_embedding(x))
+    
+    def store_cluster_labels(self):
+        for mutator_name in self.few_shot_file['mutation'].unique():
+            all_prompts = self.few_shot_file[self.few_shot_file['mutation'] == mutator_name]
 
+            # Perform clustering
+            embeddings = np.array(list(all_prompts['embedding']))
+            kmeans = KMeans(n_clusters=min(len(all_prompts), self.few_shot_num), random_state=0).fit(embeddings)
+
+            # Store cluster labels
+            self.few_shot_file.loc[all_prompts.index, 'cluster_label'] = kmeans.labels_
+
+    def select_few_shot_examples(self, mutator_name, prompt_node, method='random'):
+        all_prompts = self.few_shot_file[self.few_shot_file['mutation'] == mutator_name]
+    
+        if method == 'random':
+            # Random selection
+            few_shot_prompt = all_prompts.sample(self.few_shot_num)
+        elif method == 'cosine_similarity':
+            # Retrieval based on cosine similarity
+            prompt_embedding = self.embedding_model.get_embedding(prompt_node.prompt)
+            similarities = cosine_similarity([prompt_embedding], list(all_prompts['embedding']))[0]
+            top_indices = np.argsort(similarities)[-self.few_shot_num:]
+            few_shot_prompt = all_prompts.iloc[top_indices]
+        elif method == 'cluster':
+            # Retrieval from different clusters using stored cluster labels
+            few_shot_prompt = pd.DataFrame()
+            for label in set(all_prompts['cluster_label']):
+                cluster_prompts = all_prompts[all_prompts['cluster_label'] == label]
+                few_shot_prompt = pd.concat([few_shot_prompt, cluster_prompts.sample(1)])  # Use pd.concat instead of append
+            if len(few_shot_prompt) < self.few_shot_num:
+                additional_prompts = all_prompts[~all_prompts.index.isin(few_shot_prompt.index)].sample(self.few_shot_num - len(few_shot_prompt))
+                few_shot_prompt = pd.concat([few_shot_prompt, additional_prompts])  # Use pd.concat instead of append
+        else:
+            raise ValueError("Invalid method. Choose from 'random', 'cosine_similarity', or 'cluster'.")
+        return few_shot_prompt
+        
     def mutate_single(self, prompt_node: 'PromptNode') -> 'list[PromptNode]':
         # randomly select a mutator based on the weights
         mutator = random.choices(self.mutators, weights=self.weights, k=1)[0]
@@ -350,8 +405,7 @@ class MutateWeightedSamplingPolicy(MutatePolicy):
         mutator_name = mutator.__class__.__name__
         
         if self.few_shot:
-            # select the few shot prompt based on the mutator name
-            few_shot_prompt = self.few_shot_file[self.few_shot_file['mutation'] == mutator_name].sample(self.few_shot_num)
+            few_shot_prompt = self.select_few_shot_examples(mutator_name, prompt_node, self.retrieval_method)
             few_shot_mutated = few_shot_prompt['prompt'].tolist()
             few_shot_original = few_shot_prompt['parent_prompt'].tolist()
             results = mutator.mutate_single_few_shot(prompt_node.prompt, few_shot_original, few_shot_mutated, self.few_shot_num)
