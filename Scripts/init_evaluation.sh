@@ -28,7 +28,7 @@ run_python_script() {
 }
 
 # Start the jobs with a limit of 2 tasks in parallel
-for index in {2..3}; do
+for index in {0..150}; do
     run_python_script $index &
     ((index++))
     [ $((index % 8)) -eq 0 ] && wait
