@@ -43,7 +43,8 @@ if __name__ == "__main__":
         args.openai_key = constants.openai_key
         
     if args.phase == 'init':
-        defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+        #defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+        defense = f'./Datasets/{args.mode}_init_defense.jsonl'
     elif args.phase == 'focus':
         defense = f'./Datasets/{args.mode}_focus_defense.jsonl'
     elif args.phase == 'evaluate':

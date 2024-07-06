@@ -39,11 +39,16 @@ def run_fuzzer(args):
         os.makedirs(os.path.dirname(save_path))
     
     if args.phase == 'init':
-        initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+        #initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+        #initial_seed_path = f'./Datasets/{args.mode}_init_seed.jsonl'
+        initial_seed_path = f'./Datasets/baseline_seed.jsonl'
     elif args.phase == 'focus':
-        initial_seed_path = f'./Datasets/{args.mode}_focus_seed.jsonl'
-    elif args.phase == 'evaluate':
+        #initial_seed_path = f'./Datasets/{args.mode}_focus_seed.jsonl'
+        #initial_seed_path = f'./Datasets/{args.mode}_random_focus_seed.jsonl'
         initial_seed_path = f'./Datasets/{args.mode}_evaluate_seed.jsonl'
+    elif args.phase == 'evaluate':
+        #initial_seed_path = f'./Datasets/{args.mode}_evaluate_seed.jsonl'
+        initial_seed_path = f'./Datasets/baseline_seed.jsonl'
         
     with open(initial_seed_path, 'r') as f:
         initial_seed = [json.loads(line)['attack'] for line in f.readlines()]
@@ -62,7 +67,7 @@ def run_fuzzer(args):
         )
     select_policy = MCTSExploreSelectPolicy()
     
-    if args.no_mutate == "True":
+    if args.no_mutate:
         mutate_policy = NoMutatePolicy()
         args.energy = 1
         args.max_query = len(initial_seed)
@@ -76,13 +81,14 @@ def run_fuzzer(args):
     if args.phase == 'focus':
         args.energy = 5
         args.max_query =  len(args.defenses) * 1000
+        #args.max_query =  len(args.defenses) * 3000
         select_policy = MCTSExploreSelectPolicy()
         
         if args.mode == 'hijacking':
             weights = [0.23, 0.19, 0.13, 0.24, 0.21]
         elif args.mode == 'extraction':
-            weights = [0.23, 0.19, 0.13, 0.24, 0.21]
-            #weights = [0.1, 0.1, 0.4, 0.2, 0.2]
+            #weights = [0.23, 0.19, 0.13, 0.24, 0.21]
+            weights = [0.2, 0.2, 0.2, 0.2, 0.2]
         few_shot_examples = pd.read_csv(f'./Datasets/{args.mode}_evaluate_example.csv')
         embedding_model = OpenAIEmbeddingLLM("text-embedding-ada-002", args.openai_key)
         mutate_policy = MutateWeightedSamplingPolicy(
@@ -98,7 +104,7 @@ def run_fuzzer(args):
         )
         
     update_pool = True if args.phase == 'focus' else False
-
+    print(select_policy)
     fuzzer = GPTFuzzer(
         defenses=args.defenses,
         target=target_model,

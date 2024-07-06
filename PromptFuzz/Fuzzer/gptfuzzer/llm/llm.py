@@ -3,7 +3,7 @@ import logging
 import time
 import concurrent.futures
 import openai
-
+import json
 
 class LLM:
     def __init__(self):
@@ -56,6 +56,15 @@ class OpenAILLM(LLM):
                     n=n,
                     timeout=60,
                 )
+                if not results:
+                    continue
+                token_usage = {
+                    'prompt_tokens':results.usage.prompt_tokens,
+                    'completion_tokens':results.usage.completion_tokens,
+                    'total_tokens':results.usage.total_tokens
+                }
+                token_string = json.dumps(token_usage)
+                print(f"token usage:{token_string}\n")
                 return [results.choices[i].message.content for i in range(n)]
             
             except openai.APITimeoutError as e:
