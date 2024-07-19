@@ -10,7 +10,7 @@ from gptfuzzer.fuzzer.mutator import (
     OpenAIMutatorGenerateSimilar, OpenAIMutatorRephrase, OpenAIMutatorShorten)
 from gptfuzzer.fuzzer import GPTFuzzer
 from gptfuzzer.utils.predict import MatchPredictor, AccessGrantedPredictor
-from gptfuzzer.llm import OpenAILLM, OpenAIEmbeddingLLM
+from gptfuzzer.llm import OpenAILLM, OpenAIEmbeddingLLM, LocalLLM, LocalVLLM
 from PromptFuzz.utils import constants
 
 import random
@@ -24,7 +24,9 @@ httpx_logger.setLevel(logging.WARNING)
 def run_fuzzer(args):
         
     mutate_model = OpenAILLM(args.model_path, args.openai_key)
-    target_model = OpenAILLM(args.model_path, args.openai_key)
+    # target_model = OpenAILLM(args.model_path, args.openai_key)
+    target_model = LocalVLLM(args.target_model)
+    # target_model = LocalLLM(args.target_model) # we suggest using LocalVLLM for better performance, however if you are facing difficulties in installing vllm, you can use LocalLLM instead
     
     if args.mode == 'hijacking':
         predictor = AccessGrantedPredictor()
