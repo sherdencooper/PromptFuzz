@@ -5,7 +5,6 @@ import numpy as np
 from openai import OpenAI
 from collections import defaultdict
 
-
 encoding = tiktoken.get_encoding("cl100k_base")
 
 def dataset_check(dataset):
