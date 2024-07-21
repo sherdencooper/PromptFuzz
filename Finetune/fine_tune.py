@@ -9,7 +9,10 @@ from collections import defaultdict
 encoding = tiktoken.get_encoding("cl100k_base")
 
 def dataset_check(dataset):
-    # Format error checks
+    # Check for errors in the dataset
+    # @param dataset: list of examples
+    # @return: True if no errors found, False otherwise
+
     format_errors = defaultdict(int)
 
     for ex in dataset:
@@ -51,17 +54,26 @@ def dataset_check(dataset):
         return True
 
 def num_tokens_from_messages(messages, tokens_per_message=3, tokens_per_name=1):
+    # Count the number of tokens in a list of messages
+    # @param messages: list of messages
+    # @param tokens_per_message: number of tokens to add for each message
+    # @param tokens_per_name: number of tokens to add for each name
+    # @return: number of tokens in the messages
+
     num_tokens = 0
-    allowed_special_tokens = {'', '<|endoftext|>'}  # 添加你想允许的特殊标记
+    allowed_special_tokens = {'', '<|endoftext|>'}  # add special tokens here
     for message in messages:
         num_tokens += tokens_per_message
         for key, value in message.items():
-            if value or key == "name":  # 只有当value存在或者key是"name"时才编码
+            if value or key == "name": # don't count empty values
                 num_tokens += len(encoding.encode(value, allowed_special=allowed_special_tokens))
     num_tokens += 3
     return num_tokens
 
 def num_assistant_tokens_from_messages(messages):
+    # Count the number of tokens in assistant messages
+    # @param messages: list of messages
+    # @return: number of tokens in assistant messages
     num_tokens = 0
     for message in messages:
         if message["role"] == "assistant":
@@ -69,13 +81,19 @@ def num_assistant_tokens_from_messages(messages):
     return num_tokens
 
 def print_distribution(values, name):
+    # Print distribution statistics
+    # @param values: list of values
+    # @param name: name of the distribution
+
     print(f"\n#### Distribution of {name}:")
     print(f"min / max: {min(values)}, {max(values)}")
     print(f"mean / median: {np.mean(values)}, {np.median(values)}")
     print(f"p5 / p95: {np.quantile(values, 0.1)}, {np.quantile(values, 0.9)}")
 
 def token_counts(dataset):
-    # Warnings and tokens counts
+    # Count tokens in the dataset
+    # @param dataset: list of examples
+
     n_missing_system = 0
     n_missing_user = 0
     n_messages = []
@@ -105,9 +123,9 @@ def main(args):
     with open(args.data_path, 'r', encoding='utf-8') as f:
         dataset = [json.loads(line) for line in f]
     
-     # Fine tuning
+    # Load LLM
     client = OpenAI(
-        api_key='APIKEY',
+        api_key=args.api_key,
     )
 
     if args.work_stage == 'check':
@@ -165,9 +183,11 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-path", type=str, default="./Datasets/fine_tune/final_all_finetune_dataset.jsonl")
-    parser.add_argument("--fine-tune-job-id", type=str, default="JOBID")
+    parser.add_argument("--data_path", type=str, default="./Datasets/fine_tune/final_all_finetune_dataset.jsonl")
+    parser.add_argument("--fine_tune_job_id", type=str)
     parser.add_argument("--work_stage", type=str, choices=['check', 'start', 'monitor', 'cancel', 'download'], default='monitor')
+
+    parser.add_argument("--api_key", type=str, help="OpenAI API key")
     
     args = parser.parse_args()
     
