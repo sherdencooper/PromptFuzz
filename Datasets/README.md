@@ -37,18 +37,18 @@ Here are the examples of these benchmark datasets:
 
 Defenses datasets sampled from the TensorTrust Benchmark Dataset.
 
-- extraction_evaluate_defense.jsonl
-- hijacking_evaluate_defense.jsonl
+- extraction_preparation_defense.jsonl
+- hijacking_preparation_defense.jsonl
 
 Attack datasets sampled from the TensorTrust Benchmark Dataset.
 
-- extraction_evaluate_seed.jsonl
-- hijacking_evaluate_seed.jsonl
+- extraction_preparation_seed.jsonl
+- hijacking_preparation_seed.jsonl
 
 Example datasets for focus stage few-shot learning during the mutation process. Sampled by mutator ranking from the attack results of the preparation stage. You can run the preparation stage attack and analysis scripts to get the example datasets.
 
-- extraction_evaluate_example.jsonl
-- hijacking_evaluate_example.jsonl
+- extraction_preparation_example.jsonl
+- hijacking_preparation_example.jsonl
 
 ## Focus Stage Datasets
 
@@ -84,7 +84,7 @@ For the message extraction task, we sample attack prompts from the Language Mode
     }
     ```
 
-For the hijacking task, we sample attack prompts from the Lakera Dataset and [[datasets](https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions)].
+For the hijacking task, we sample attack prompts from the Lakera Dataset([[datasets](https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions)]).
 
 - hijacking_human_expert_baseline.jsonl
   
@@ -99,7 +99,7 @@ For the hijacking task, we sample attack prompts from the Lakera Dataset and [[d
 
 ### GCG-injection Baseline Datasets
 
-We select the GCG attack suffix using four local LLMs to minimize target loss for transfer attacks([paper](https://arxiv.org/pdf/2307.15043)).
+We select the GCG attack suffix using four local LLMs to minimize target loss for transfer attacks([[paper](https://arxiv.org/pdf/2307.15043)]).
 
 - extraction_gcg_injection_baseline.jsonl
   
