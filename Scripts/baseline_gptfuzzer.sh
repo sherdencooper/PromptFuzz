@@ -35,7 +35,7 @@ if [ "$DYNAMIC_ALLOCATE" = "True" ]; then
 fi
 
 # Set the log path
-LOG_PATH="Logs/${PHASE}/baseline_gptfuzzer/${MODE}"
+LOG_PATH="Logs/${PHASE}/${MODE}baseline/"
 
 # Create the log directory if it does not exist
 mkdir -p "$LOG_PATH"

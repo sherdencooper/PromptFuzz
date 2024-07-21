@@ -13,6 +13,7 @@ DYNAMIC_ALLOCATE="True"
 FEW_SHOT_NUM=3
 INDEX=0
 MAX_JAILBREAK=5
+BASELINE="gcg" # humanexpert
 
 # Check if NO_MUTATE, ALL_DEFENSES, FEW_SHOT, and DYNAMIC_ALLOCATE should be set to true
 NO_MUTATE_FLAG=""
@@ -38,7 +39,7 @@ fi
 
 
 # Set the log path
-LOG_PATH="Logs/${PHASE}/${MODE}/lmi/"
+LOG_PATH="Logs/${PHASE}/${MODE}/baseline/${BASELINE}/"
 
 # Create the log directory if it does not exist
 mkdir -p "$LOG_PATH"
@@ -52,7 +53,8 @@ run_python_script() {
         --retrieval_method $RETRIEVAL_METHOD \
         --cluster_num $CLUSTER_NUM \
         --threshold_coefficient $THRESHOLD_COEFFICIENT \
-        --few_shot_num $FEW_SHOT_NUM > "${LOG_PATH}/${index}.log" 2>&1
+        --few_shot_num $FEW_SHOT_NUM \
+        --baseline $BASELINE > "${LOG_PATH}/${index}.log" 2>&1
     echo "Task $index finished."
 }
 
