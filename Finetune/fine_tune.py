@@ -5,7 +5,6 @@ import numpy as np
 from openai import OpenAI
 from collections import defaultdict
 
-
 encoding = tiktoken.get_encoding("cl100k_base")
 
 def dataset_check(dataset):
@@ -74,6 +73,7 @@ def num_assistant_tokens_from_messages(messages):
     # Count the number of tokens in assistant messages
     # @param messages: list of messages
     # @return: number of tokens in assistant messages
+
     num_tokens = 0
     for message in messages:
         if message["role"] == "assistant":
@@ -183,11 +183,13 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="./Datasets/fine_tune/final_all_finetune_dataset.jsonl")
-    parser.add_argument("--fine_tune_job_id", type=str)
-    parser.add_argument("--work_stage", type=str, choices=['check', 'start', 'monitor', 'cancel', 'download'], default='monitor')
-
+    # Model and Data
     parser.add_argument("--api_key", type=str, help="OpenAI API key")
+    parser.add_argument("--data_path", type=str, default="./Finetune/Datasets/finetune_dataset.jsonl")
+    
+    # Work stage
+    parser.add_argument("--work_stage", type=str, choices=['check', 'start', 'monitor', 'cancel', 'download'], default='monitor')
+    parser.add_argument("--fine_tune_job_id", type=str)
     
     args = parser.parse_args()
     
