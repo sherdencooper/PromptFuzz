@@ -30,30 +30,12 @@ if __name__ == "__main__":
     parser.add_argument("--few_shot_num", type=int, default=3)
     parser.add_argument("--dynamic_allocate", action='store_true', help='Dynamic allocate the energy')
     parser.add_argument("--threshold_coefficient", type=float, default=0.5, help='The threshold coefficient')
+    parser.add_argument("--mutator_weights", type=float, nargs='+', default=[0.2, 0.2, 0.2, 0.2, 0.2], help='The weights for the mutator selection')
+    parser.add_argument("--baseline", type=str, default=None, help='The baseline model')
 
     args = parser.parse_args()
     
     if args.openai_key is None:
         args.openai_key = constants.openai_key
-        
-    if args.phase == 'init':
-        defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
-    elif args.phase == 'focus':
-        defense = f'./Datasets/{args.mode}_focus_defense.jsonl'
-    elif args.phase == 'evaluate':
-        defense = f'./Datasets/{args.mode}_evaluate_defense.jsonl'
-        
-    # read the jsnol file
-    with open(defense, 'r') as f:
-        defenses = [json.loads(line) for line in f.readlines()]
-        
-    if args.all_defenses:
-        args.defenses = defenses
-    else:
-        defenses = defenses[args.index]
-        args.defenses = [defenses]
-    
-    if args.no_mutate:
-        assert args.phase == 'init'
         
     run_fuzzer(args)
