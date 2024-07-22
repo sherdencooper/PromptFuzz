@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 
 def get_success_num(data):
+    # Get the number of successful attacks
     return sum([num for num in eval(data['results'])])
 
 def main(args):
