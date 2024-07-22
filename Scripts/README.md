@@ -7,7 +7,7 @@
 To get the most potential attack seeds, you need to run the preparation stage scripts firstly. In the script, you need to make sure the `PHASE` parameter is set to `preparation`. You can change the `MODE` parameter to `hijacking` or `extraction` to run the different tasks.
 
 ```shell
-nohup bash ./Scripts/promptfifz_preparation_seed_evaluate.sh &
+nohup bash ./Scripts/promptfuzz_preparation_seed_evaluate.sh &
 ```
 
 ### Analysis Preparation Stage
