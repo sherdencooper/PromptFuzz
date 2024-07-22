@@ -46,7 +46,7 @@ If you want to run the challenge focus attack, you can run the following script:
 nohup bash ./Scripts/promptfuzz_challenge_defense.sh &
 ```
 
-If you want to run the baseline comparison, use the following script. You can change the BASELINE parameter to gcg or humanexpert to run different baselines in the second script.
+If you want to run the baseline comparison, use the following script. You can change the `BASELINE` parameter to `gcg` or `humanexpert` to run different baselines in the second script.
 
 ```shell
 # For GPTFuzzer
