@@ -9,6 +9,7 @@
     - [Setup environment](#setup-environment)
     - [Datasets](#datasets)
     - [Set API key](#set-api-key)
+    - [Fine-tuned Model](#fine-tuned-model)
     - [Running Focus Stage](#running-focus-stage)
   - [Release](#release)
 
@@ -42,7 +43,7 @@ We provide the datasets for the preparation and focus stages, including the atta
 You can use the following scripts to generate the focus attack seeds and the few-shot examples:
 
 ```shell
-nohuo bash ./Scripts/promptfuzz_preparation.sh &
+nohup bash ./Scripts/promptfuzz_preparation.sh &
 bash ./Scripts/analysis_preparation.sh
 ```
 
@@ -53,6 +54,16 @@ You need to set the API key for the model you want to use. In PromptFuzz, defaul
 ```python
 openai_key = 'your_openai_key'
 ```
+
+### Fine-tuned Model
+
+You can fine-tune the model using the following scripts:
+
+```shell
+nohup bash ./Scripts/promptfuzz_finetune.sh &
+```
+
+You can read the detailed introduction about the finetuned dataset in the [Finetune](./Finetune/README.md).
 
 ### Running Focus Stage
 
