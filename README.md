@@ -1,122 +1,75 @@
-# PromptFuzz
+# PromptFuzz: Harnessing Fuzzing Techniques for Robust Testing of Prompt Injection in LLMs
 
-# 1 Datasets
+## Table of Contents
 
-## **1.1 Preparation phase**
+- [PromptFuzz: Harnessing Fuzzing Techniques for Robust Testing of Prompt Injection in LLMs](#promptfuzz-harnessing-fuzzing-techniques-for-robust-testing-of-prompt-injection-in-llms)
+  - [Table of Contents](#table-of-contents)
+  - [News](#news)
+  - [Quick Start](#quick-start)
+    - [Setup environment](#setup-environment)
+    - [Datasets](#datasets)
+    - [Set API key](#set-api-key)
+    - [Running Focus Stage](#running-focus-stage)
+  - [Release](#release)
 
-- hijacking_evaluate_defense.jsonl
-- hijacking_evaluate_seed.jsonl
+## News
 
-## 1.2 Focus phase
+Congratulations to our team for no reason!
 
-- hijacking_focus_challenging_defense.jsonl
-- hijacking_focus_defense.jsonl
-- hijacking_focus_seed.jsonl
-- gcg_evaluate.jsonl
-- lmi_evaluate.jsonl
-- final_all_finetune_dataset.jsonl
+## Quick Start
 
-# 2 Analysis Scripts
+### Setup environment
 
-## 2.1 **Preparation phase**
-
-Get data for the focus stage during preparation phase:
-
-- In the PREPARE phase, on the results of the '`hijacking_evaluate_seed`' attack on '`hijacking_evaluate_defense`', based on the ASR to the attack prompts and then sampling them based on Top 40
-
-    ```bash
-    python get_attack_ranking.py
-    python sample_top40_focus_seed.py
-    ```
-
-- Sample 10 attack prompts on each mutator as example dataset. at the same time, you can analyze the mutator's mutation in each attack prompt by '`get_mutator_distribution`'. Distribution of the mutator in each attack prompt mutation
-
-    ```bash
-    python sample_example_by_mutator.py
-    
-    python get_mutator_distribution.py
-    ```
-
-
-## 2.2 Focus phase
-
-Get challenging data:
-
-```bash
-python get_focus_challenging_defense.py
+```shell
+conda create -n promptfuzz python=3.10
+conda activate promptfuzz
+pip install -r requirements.txt
 ```
 
-Analysis of results:
+### Datasets
 
-- Access to harmonized formatting forms.
+We provide the datasets for the preparation and focus stages, including the attack seeds, the defense prompts, and the few-shot examples. You can read the [Datasets](./Datasets/README.md) for more details, and the dataset names are as follows:
 
-    ```markdown
-    index,prompt,response,parent,results,mutation,query
-    ->
-    AttackID,AttackSuccessNum,AttackSuccessRate,ParentAttackID,AttackPrompt
-    ```
+|Dataset Name| Stage |
+|---|---|
+|extraction/hijacking_preparation_defense.jsonl|Preparation|
+|extraction/hijacking_preparation_seed.jsonl|Preparation|
+|extraction/hijacking_focus_seed.jsonl|Focus|
+|extraction/hijacking_few_shot_examples.csv|Focus|
+|extraction/hijacking_focus_defense.jsonl|Focus|
+|extraction/hijacking_focus_challenging_defense.jsonl|Focus|
 
-    ```bash
-    python get_uniform_result.py
-    ```
+You can use the following scripts to generate the focus attack seeds and the few-shot examples:
 
-- Aggregatting multiple csv results into one file.
-
-    ```bash
-    python aggregate_csv_results.py
-    ```
-
-- Getting the BestASR, ESR, Coverage metrics corresponding to the **initial seeds** method.
-
-    ```bash
-    python get_initial_baseline_metric.py
-    ```
-
-- Getting the BestASR, ESR, Coverage metrics corresponding to PromptFuzz, GPTFuzz, LMI, GCG methods.
-
-    ```bash
-    python get_baseline_metric.py
-    ```
-
-    In particular, for experiments with LMI and GCG methods, as well as Challenging Defense experiments, you need to execute python aggregate_csv_results.py first, and then enter the path to the aggregated results before executing this command.
-
-- Getting Iteration Data.
-
-    ```bash
-    get_iteration_results.py
-    ```
-    
-
-# 3 Run Script
-
-## 3.1 Baseline methods
-
-```bash
-# LMI
-bash lmi_attack_single_all.sh
-
-# GCG
-bash gcg_attack_single_all.sh
-
-# GPTFuzzer-Injection
-bash focus_attack_gptfuzzer.sh
-
-# PromptFuzz
-bash focus_attack.sh
+```shell
+nohuo bash ./Scripts/promptfuzz_preparation.sh &
+bash ./Scripts/analysis_preparation.sh
 ```
 
-## 3.2 Fine-tune GPT
+### Set API key
 
-```bash
-bash fine_tune.sh
+You need to set the API key for the model you want to use. In PromptFuzz, default models is `gpt-3.5-turbo-0125`, and you can set your api_key in the [constants.py](./PromptFuzz/utils/constants.py).
+
+```python
+openai_key = 'your_openai_key'
 ```
 
-## 3.3 Attack Challenging Defense
+### Running Focus Stage
 
-```bash
-# Base model
-bash focus_attack_single_challenging_base.sh
+You can run the focus attack, the challenge focus attack, and the baseline comparison using the following scripts:
 
-# Finetuned model
-bash focus_attack_single_challenging_finetuned.sh
+```shell
+# For focus attack
+nohup bash ./Scripts/promptfuzz_focus_attack.sh &
+
+# For challenge defense attack
+nohup bash ./Scripts/promptfuzz_challenge_defense.sh &
+
+# For baseline comparison
+nohup bash ./Scripts/baseline_gptfuzzer.sh &
+nohup bash ./Scripts/baseline_humanexpert_gcg.sh &
 ```
+
+You can read the detailed introduction in the [Scripts](./Scripts/README.md).
+
+## Release
