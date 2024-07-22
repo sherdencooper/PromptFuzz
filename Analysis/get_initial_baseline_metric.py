@@ -10,7 +10,6 @@ def main(args):
     # get defense id
     df_defense = pd.read_csv(args.defense_pool)
     defense_ids = df_defense['defenseID'].tolist()
-     # attack_list初始化成个数为len(attack_ids),元素为0的dataframe
     attack_list = [[0 for _ in range(len(defense_ids))] for _ in range(len(attack_ids))]
     # loop csv file by defense id
 
@@ -24,7 +23,6 @@ def main(args):
             if parent_id in attack_ids:
                 attack_list[attack_ids.index(parent_id)][idx] += 1
         
-    # attack_list转换成dataframe，行为attack_ids，列为对应的list
     df = pd.DataFrame({
         'id': attack_ids,
         'AttackSuccessList': attack_list,

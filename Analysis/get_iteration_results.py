@@ -13,7 +13,7 @@ def process_iteration_by_parent(df):
         if row['parent'] == current_parent:
             part_data.append(row['results'])
         else:
-            iterations[iteration] = part_data[:] # 保存上一个iteration的数据
+            iterations[iteration] = part_data[:] 
             current_parent = row['parent']
             iteration += 1
             part_data.append(row['results'])
@@ -27,19 +27,16 @@ def process_iterations_by_query(df):
     iter_num = 1
     for _, row in df.iterrows():
         if row['query'] < part_query:
-            # iteration part 内部添加数据
             part_data.append(row['results'])
         elif row['query'] < part_query + 750:
-            # 进入下一个iteration，顺利更新part_query
-            iterations[iter_num] = part_data[:] # 保存上一个iteration的数据
-            part_data.append(row['results'])    # 添加这个数据
-            part_query += 750               # 更新part_query_num
+            iterations[iter_num] = part_data[:] 
+            part_data.append(row['results'])    
+            part_query += 750               
             iter_num += 1
         else:
-            # 空转iteration，反复添加上一步的part数据，并更新part_query_num
             while row['query'] > part_query :
                 iterations[iter_num] = part_data[:]
-                part_query += 750               # 更新part_query_num
+                part_query += 750               
                 iter_num += 1
     return iterations
 
@@ -47,7 +44,6 @@ def std_numpy(x):
     return round(np.std(x), 5)
 
 def get_metric(attack_list, topK=5):
-    # pdb.set_trace() 
     df_new = pd.DataFrame({
         'AttackSuccessList': [ast.literal_eval(x) for x in attack_list],
         'AttackSuccessRate': [sum(ast.literal_eval(attack_list[i])) / 150 for i in range(len(attack_list))],
@@ -85,7 +81,6 @@ def process_all_data(file_paths, method='promptfuzz', mode='hijacking', show=Fal
                 print(f'coverage_metric: {coverage_metric}')
                 print()
         if len(iterations) < 201: # Alignment
-            # 将最后一个复制，让整体长度为201
             best_asr_list.extend([best_asr] * (201 - len(iterations)))
             ensemble_asr_list.extend([ensemble_asr] * (201 - len(iterations)))
             coverage_metric_list.extend([coverage_metric] * (201 - len(iterations)))
@@ -103,7 +98,6 @@ def process_all_data(file_paths, method='promptfuzz', mode='hijacking', show=Fal
             df.to_csv(file_path.replace('.csv', '_processed.csv'), index=False)
         else:
             df.to_csv(f'./datasets/{mode}_gptfuzzer_result.csv', index=False)
-    # 针对df_list中的df，分别求其在每个iteration的best_asr、ensemble_asr、coverage_metric的平均值、标准差
     combined_df = pd.concat(df_list, ignore_index=True)
     result_df = combined_df.groupby('iteration').agg({'best_asr': ['mean', std_numpy],
                                                       'ensemble_asr': ['mean', std_numpy],
@@ -116,12 +110,6 @@ def process_all_data(file_paths, method='promptfuzz', mode='hijacking', show=Fal
     return result_df
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--file_paths', type=str, nargs='+', help='file paths')
-    # parser.add_argument('--method', type=str, default='promptfuzz', help='method')
-    # parser.add_argument('--mode', type=str, default='hijacking', help='mode')
-    # parser.add_argument('--show', type=bool, default=False, help='show')
-    # args = parser.parse_args()
 
     hijacking_file_paths_promptfuzz = ['./datasets/hijacking_all_results_bk_1.csv', 
                                    './datasets/hijacking_all_results_bk_2.csv',
