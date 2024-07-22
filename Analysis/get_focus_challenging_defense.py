@@ -1,11 +1,9 @@
-import pdb
 import json
 import pandas as pd
 
 # Read the csv file
 df = pd.read_csv('Results/evaluate/hijacking/hijacking_focus_defense_rate100.csv')
 sample_id = df['sample_id'].to_list()
-pdb.set_trace()
 
 # Read the jsonl file
 with open('Datasets/hijacking_focus_defense.jsonl', 'r') as f:
