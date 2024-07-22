@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import ast
-import argparse
 
 def process_iteration_by_parent(df):
     iterations = {}
