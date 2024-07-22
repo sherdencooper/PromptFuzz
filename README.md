@@ -11,11 +11,10 @@
     - [Set API key](#set-api-key)
     - [Fine-tuned Model](#fine-tuned-model)
     - [Running Focus Stage](#running-focus-stage)
-  - [Release](#release)
 
 ## News
 
-Congratulations to our team for no reason!
+(2024/07/22) Congrats to our team for NO REASON!
 
 ## Quick Start
 
@@ -82,5 +81,3 @@ nohup bash ./Scripts/baseline_humanexpert_gcg.sh &
 ```
 
 You can read the detailed introduction in the [Scripts](./Scripts/README.md).
-
-## Release
