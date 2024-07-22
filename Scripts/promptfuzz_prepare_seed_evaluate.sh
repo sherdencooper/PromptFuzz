@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PYTHON_SCRIPT="./Experiment/run.py"
-PHASE="evaluate"
+PHASE="preparation"
 MODE="hijacking"
 NO_MUTATE="False"
 ALL_DEFENSES="True"
