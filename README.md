@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ### Datasets
 
-We provide the datasets for the preparation and focus stages, including the attack seeds, the defense prompts, and the few-shot examples. You can read the [Datasets](./Datasets/README.md) for more details, and the dataset names are as follows:
+We provide the datasets for preparation and focus stages, including the attack seeds, defense prompts, and few-shot examples. You can read the [Datasets](./Datasets/README.md) for more details, and the dataset names are as follows:
 
 |Dataset Name| Stage |
 |---|---|
@@ -48,7 +48,7 @@ bash ./Scripts/analysis_preparation.sh
 
 ### Set API key
 
-You need to set the API key for the model you want to use. In PromptFuzz, default models is `gpt-3.5-turbo-0125`, and you can set your api_key in the [constants.py](./PromptFuzz/utils/constants.py).
+You need to set the API key for the model you want to use. In PromptFuzz, the default model is gpt-3.5-turbo-0125. You can set your api_key in the [constants.py](./PromptFuzz/utils/constants.py).
 
 ```python
 openai_key = 'your_openai_key'
@@ -56,17 +56,17 @@ openai_key = 'your_openai_key'
 
 ### Fine-tuned Model
 
-You can fine-tune the model using the following scripts:
+You can fine-tuned the model using the following scripts:
 
 ```shell
 nohup bash ./Scripts/promptfuzz_finetune.sh &
 ```
 
-You can read the detailed introduction about the finetuned dataset in the [Finetune](./Finetune/README.md).
+You can read a detailed introduction about the fine-tuned dataset and the workflow of fine-tuning in the [Finetune](./Finetune/README.md).
 
 ### Running Focus Stage
 
-You can run the focus attack, the challenge focus attack, and the baseline comparison using the following scripts:
+You can run the focus attack, challenge focus attack, and baseline comparison using the following scripts:
 
 ```shell
 # For focus attack
