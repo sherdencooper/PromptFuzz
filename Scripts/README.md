@@ -60,10 +60,10 @@ nohup bash ./Scripts/baseline_humanexpert_gcg.sh &
 
 After once the focus stage is finished, you will get these two kinds of results files:
 
-- `./Results/focus/${MODE}/all_defenses.csv` # The attack results of **all defenses**
-- `./Results/focus/${MODE}/*.csv`    # The attack results for **each defense**
+- `./Results/focus/${MODE}/all_defenses.csv` # The attack results of **all defenses**, for `promptfuzz`, `gptfuzz`
+- `./Results/focus/${MODE}/*.csv`    # The attack results for **each defense**, for `humanexpert`, `gcg`
 
-You can run the analysis script to get uniform results and metrics. Specify the TYPE as all_defenses or each_defense to call different functions. Also, you need to specify the target file or folder.
+You can run the analysis script to get uniform results and metrics. Specify the `METHOD` as `promptfuzz` `gptfuzz`, `humanexpert` or `gcg` to call different functions. Also, you need to specify the target file or folder.
 
 ```shell
 nohup bash ./Scripts/analysis_focus.sh &
