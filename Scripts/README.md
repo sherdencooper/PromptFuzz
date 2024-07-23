@@ -4,7 +4,7 @@
 
 ### Running Preparation Stage
 
-To get the most potential attack seeds, you need to run the preparation stage scripts firstly. In the script, you need to make sure the `PHASE` parameter is set to `preparation`. You can change the `MODE` parameter to `hijacking` or `extraction` to run the different tasks.
+To get the most potential attack seeds, run the preparation stage scripts first. Ensure the PHASE parameter is set to preparation. You can change the MODE parameter to hijacking or extraction to run different tasks.
 
 ```shell
 nohup bash ./Scripts/promptfuzz_preparation_seed_evaluate.sh &
@@ -32,7 +32,7 @@ After running the analysis script, you will get these two files:
 
 ### Running Focus Stage
 
-After getting the focus attack seeds and the few-shot examples, you can run the focus stage scripts. In the script, you need to make sure the `PHASE` parameter is set to `focus`. You can change the `MODE` parameter to `hijacking` or `extraction` to run the different tasks.
+After obtaining the focus attack seeds and the few-shot examples, you can run the focus stage scripts. In the script, ensure the PHASE parameter is set to focus. You can change the `MODE` parameter to `hijacking` or `extraction` to run the different tasks.
 
 If you want to run the normal focus attack, you can run the following script:
 
@@ -50,7 +50,7 @@ If you want to run the baseline comparison, use the following script. You can ch
 
 ```shell
 # For GPTFuzzer
-nohup bash ./Scripts/baseline_gptfuzzer.sh &
+nohup bash ./Scripts/baseline_gptfuzz.sh &
 
 # For GCG & Human Expert
 nohup bash ./Scripts/baseline_humanexpert_gcg.sh &
