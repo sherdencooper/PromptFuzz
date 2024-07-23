@@ -2,6 +2,19 @@ import pandas as pd
 import numpy as np
 import os
 import glob
+import argparse
+
+def get_uniform_result(file_path, save_path, defense_num=150):
+    # Read the csv file
+    #@param file_path: the path to the csv file
+    #@param save_path: the path to save the new csv file
+
+    df = pd.read_csv(file_path)
+    df_new = pd.DataFrame({'AttackID': df['index'], 
+                           'AttackSuccessNum': df['results'].apply(lambda x: sum(eval(x))), 
+                           'AttackSuccessRate': df['results'].apply(lambda x: sum(eval(x))/defense_num), 
+                           'ParentAttackID': df['parent'], 
+                           'AttackPrompt': df['prompt']})
 
 def read_csv_files(path):
     # Read all csv files in the given path
@@ -71,7 +84,7 @@ def get_metric_normal(file_path, topK=5):
 
     return round(best_asr, 4), round(ensemble_asr, 4), round(coverage_metric, 4)
 
-def main(file_paths):
+def main(file_path, args):
     # Record the best ASR, ensemble ASR, and coverage metric for each file
     results = []
     for file_path in file_paths:
@@ -88,9 +101,15 @@ def main(file_paths):
     df = pd.DataFrame(results, columns=['FileID', 'BestASR', 'EnsembleASR', 'CoverageMetric'])
     df.to_csv('./Results/focus/hijacking/baseline_all/metric_results.csv', index=False)
     
-
     
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Testing parameters')
+    parser.add_argument('--file_paths', type=str, nargs='+', help='The file paths to be evaluated')
+    parser.add_argument('--defense_num', type=int, default=150, help='The number of defenses')
+
+    args = parser.parse_args()
+
+
     df_humanexpert = read_csv_files("./Results/focus/hijacking/baseline_LMIGCG/lmi_baseline_all_defenses") 
     df_GCG = read_csv_files("./Results/focus/hijacking/baseline_LMIGCG/gcg_baseline_all_defenses") 
     humanexpert_csv_path = "./Results/focus/hijacking/baseline_LMIGCG/hijacking_init_results_LMI_debug_3.csv"
