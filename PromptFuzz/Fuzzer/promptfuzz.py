@@ -41,14 +41,12 @@ def run_fuzzer(args):
     # check if the directory exists
     if not os.path.exists(os.path.dirname(save_path)):
         os.makedirs(os.path.dirname(save_path))
-    
     # load the defense prompt
     if args.phase == 'init':
-        if args.baseline == 'humanexpert':
-            defense = f'./Datasets/{args.mode}_humanexpert_baseline.jsonl'
-        elif args.baseline == 'gcg': 
-            defense = f'./Datasets/{args.mode}_gcg_baseline.jsonl'
-        defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+        if args.baseline == 'humanexpert' or args.baseline == 'gcg':
+            defense = f'./Datasets/{args.mode}_focus_defense.jsonl'    
+        else:
+            defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
     elif args.phase == 'focus':
         defense = f'./Datasets/{args.mode}_focus_defense.jsonl'
     elif args.phase == 'preparation':
@@ -56,19 +54,21 @@ def run_fuzzer(args):
     
     with open(defense, 'r') as f:
         defenses = [json.loads(line) for line in f.readlines()]
-        
     if args.all_defenses:
-        defenses = defenses
+        args.defenses = defenses
     else:
         defenses = defenses[args.index]
-        defenses = [defenses]
-    
+        args.defenses = [defenses]
+    print("The defense is: ", args.defenses)
     if args.no_mutate:
         assert args.phase == 'init'
 
     # load the initial seed
     if args.phase == 'init':
-        initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
+        if args.baseline == 'humanexpert' or args.baseline == 'gcg':
+            initial_seed_path = f'./Datasets/{args.mode}_{args.baseline}_baseline.jsonl'
+        else:
+            initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
     elif args.phase == 'focus':
         initial_seed_path = f'./Datasets/{args.mode}_focus_seed.jsonl'
     elif args.phase == 'preparation':
@@ -107,11 +107,11 @@ def run_fuzzer(args):
         args.max_query =  len(args.defenses) * 1000
         select_policy = MCTSExploreSelectPolicy()
         
-        few_shot_examples = pd.read_csv(f'./Datasets/{args.mode}_evaluate_example.csv')
+        few_shot_examples = pd.read_csv(f'./Datasets/{args.mode}_few_shot_example.csv')
         embedding_model = OpenAIEmbeddingLLM("text-embedding-ada-002", args.openai_key)
         mutate_policy = MutateWeightedSamplingPolicy(
             mutator_list,
-            weights=args.weights,
+            weights=args.mutator_weights,
             few_shot=args.few_shot,
             few_shot_num=args.few_shot_num,
             few_shot_file=few_shot_examples,
