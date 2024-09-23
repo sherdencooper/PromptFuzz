@@ -2,7 +2,7 @@
 
 PYTHON_SCRIPT="./Experiment/run.py"
 PHASE="focus"
-MODE="extraction"
+MODE="hijacking"
 NO_MUTATE="False"
 ALL_DEFENSES="True"
 RETRIEVAL_METHOD="cluster"
@@ -11,8 +11,8 @@ THRESHOLD_COEFFICIENT=0.5
 FEW_SHOT="True"
 DYNAMIC_ALLOCATE="True"
 FEW_SHOT_NUM=3
-MUTATOR_WEIGHTS_HIJACKING=(0.21, 0.23, 0.13, 0.23, 0.2)
-MUTATOR_WEIGHTS_EXTRATION=(0.1, 0.1, 0.4, 0.2, 0.2)
+MUTATOR_WEIGHTS_HIJACKING=(0.21 0.23 0.13 0.23 0.2)
+MUTATOR_WEIGHTS_EXTRATION=(0.1 0.1 0.4 0.2 0.2)
 
 # Check if NO_MUTATE, ALL_DEFENSES, FEW_SHOT, and DYNAMIC_ALLOCATE should be set to true
 NO_MUTATE_FLAG=""
@@ -51,6 +51,7 @@ LOG_PATH="Logs/${PHASE}/${MODE}"
 mkdir -p "$LOG_PATH"
 
 # Run the Python script
-python -u "$PYTHON_SCRIPT" --phase $PHASE --mode $MODE $NO_MUTATE_FLAG $ALL_DEFENSES_FLAG $FEW_SHOT_FLAG $DYNAMIC_ALLOCATE_FLAG --retrieval_method $RETRIEVAL_METHOD --cluster_num $CLUSTER_NUM --threshold_coefficient $THRESHOLD_COEFFICIENT --few_shot_num $FEW_SHOT_NUM --mutator_weights $MUTATOR_WEIGHTS > "${LOG_PATH}/all_defenses.log" 2>&1
+# python -u "$PYTHON_SCRIPT" --phase $PHASE --mode $MODE $NO_MUTATE_FLAG $ALL_DEFENSES_FLAG $FEW_SHOT_FLAG $DYNAMIC_ALLOCATE_FLAG --retrieval_method $RETRIEVAL_METHOD --cluster_num $CLUSTER_NUM --threshold_coefficient $THRESHOLD_COEFFICIENT --few_shot_num $FEW_SHOT_NUM --mutator_weights $MUTATOR_WEIGHTS > "${LOG_PATH}/all_defenses.log" 2>&1
+python -u "$PYTHON_SCRIPT" --phase $PHASE --mode $MODE $NO_MUTATE_FLAG $ALL_DEFENSES_FLAG $FEW_SHOT_FLAG $DYNAMIC_ALLOCATE_FLAG --retrieval_method $RETRIEVAL_METHOD --cluster_num $CLUSTER_NUM --threshold_coefficient $THRESHOLD_COEFFICIENT --few_shot_num $FEW_SHOT_NUM --mutator_weights $MUTATOR_WEIGHTS
 
 echo "All tasks finished."
