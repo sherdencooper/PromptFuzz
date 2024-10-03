@@ -81,3 +81,15 @@ nohup bash ./Scripts/baseline_humanexpert_gcg.sh &
 ```
 
 You can read the detailed introduction in the [Scripts](./Scripts/README.md).
+
+## Citation
+If you find this useful in your research, please consider citing:
+
+```
+@article{yu2024promptfuzz,
+  title={PROMPTFUZZ: Harnessing Fuzzing Techniques for Robust Testing of Prompt Injection in LLMs},
+  author={Yu, Jiahao and Shao, Yangguang and Miao, Hanwen and Shi, Junzheng and Xing, Xinyu},
+  journal={arXiv preprint arXiv:2409.14729},
+  year={2024}
+}
+```
