@@ -42,7 +42,7 @@ def get_metric_normal(file_path, method='promptfuzz',topK=5, defense_num=150):
         df = pd.read_csv(file_path, on_bad_lines='skip')
         df = df.dropna()
     
-    if method == 'human_expert' or method == 'gcg':
+    if method == 'human_expert' or method == 'gcg' or method == 'initial_seed':
         unique_parents = df.drop_duplicates(subset=['parent'])['parent'].tolist()
         attack_list = []
         for parent in unique_parents:
@@ -77,7 +77,7 @@ def get_metric_normal(file_path, method='promptfuzz',topK=5, defense_num=150):
 
 def main(args):
     # preprocess the file
-    if args.method == 'human_expert' or args.method == 'gcg':
+    if args.method == 'human_expert' or args.method == 'gcg' or args.method == 'initial_seed':
         df_aggregate_csv_results = read_csv_files(args.target_path)
         df_aggregate_csv_results.to_csv(args.aggregate_csv_file_path, index=False)
         args.target_path = args.aggregate_csv_file_path
