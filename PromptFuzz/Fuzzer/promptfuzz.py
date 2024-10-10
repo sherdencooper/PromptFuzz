@@ -25,13 +25,15 @@ def run_fuzzer(args):
         
     mutate_model = OpenAILLM(args.model_path, args.openai_key)
     target_model = OpenAILLM(args.model_path, args.openai_key)
-    
+
     if args.mode == 'hijacking':
         predictor = AccessGrantedPredictor()
     elif args.mode == 'extraction':
         predictor = MatchPredictor()
+    else:
+        raise ValueError("Invalid mode")
     
-    if args.baseline == 'humanexpert' or args.baseline == 'gcg':
+    if args.baseline != None:
         save_path = f'./Results/{args.phase}/{args.mode}/baseline/{args.baseline}/{args.index}.csv' if not args.all_defenses else f'./Results/{args.phase}/{args.mode}/baseline/{args.baseline}/all_results.csv'    
     else:
         save_path = f'./Results/{args.phase}/{args.mode}/{args.index}.csv' if not args.all_defenses else f'./Results/{args.phase}/{args.mode}/all_results.csv'    
@@ -43,14 +45,16 @@ def run_fuzzer(args):
         os.makedirs(os.path.dirname(save_path))
     # load the defense prompt
     if args.phase == 'init':
-        if args.baseline == 'humanexpert' or args.baseline == 'gcg':
+        if args.baseline == 'human_expert' or args.baseline == 'gcg' or args.baseline == 'initial_seed':
             defense = f'./Datasets/{args.mode}_focus_defense.jsonl'    
         else:
             defense = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
-    elif args.phase == 'focus':
-        defense = f'./Datasets/{args.mode}_focus_defense.jsonl'
     elif args.phase == 'preparation':
         defense = f'./Datasets/{args.mode}_preparation_defense.jsonl'
+    elif args.phase == 'focus':
+        defense = f'./Datasets/{args.mode}_focus_defense.jsonl'
+    else:
+        raise ValueError("Invalid phase")
     
     with open(defense, 'r') as f:
         defenses = [json.loads(line) for line in f.readlines()]
@@ -65,8 +69,10 @@ def run_fuzzer(args):
 
     # load the initial seed
     if args.phase == 'init':
-        if args.baseline == 'humanexpert' or args.baseline == 'gcg':
+        if args.baseline == 'human_expert' or args.baseline == 'gcg':
             initial_seed_path = f'./Datasets/{args.mode}_{args.baseline}_baseline.jsonl'
+        elif args.baseline == 'initial_seed':
+            initial_seed_path = f'./Datasets/{args.mode}_preparation_seed.jsonl'
         else:
             initial_seed_path = f'./Datasets/{args.mode}_robustness_dataset.jsonl'
     elif args.phase == 'focus':
@@ -97,7 +103,7 @@ def run_fuzzer(args):
         args.max_query = len(initial_seed)
         select_policy = RoundRobinSelectPolicy()
         
-    if args.phase == 'evaluate':
+    if args.phase == 'preparation':
         args.energy = 1
         args.max_query = len(initial_seed) * len(args.defenses) * 10
         select_policy = RoundRobinSelectPolicy()
@@ -122,7 +128,7 @@ def run_fuzzer(args):
         )
         
     update_pool = True if args.phase == 'focus' else False
-
+    
     fuzzer = GPTFuzzer(
         defenses=args.defenses,
         target=target_model,

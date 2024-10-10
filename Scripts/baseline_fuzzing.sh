@@ -2,7 +2,7 @@
 
 PYTHON_SCRIPT="./Experiment/run.py"
 PHASE="focus"
-MODE="hijacking"
+MODE="hijacking" # extraction
 NO_MUTATE="False"
 ALL_DEFENSES="True"
 
@@ -35,7 +35,7 @@ if [ "$DYNAMIC_ALLOCATE" = "True" ]; then
 fi
 
 # Set the log path
-LOG_PATH="Logs/${PHASE}/${MODE}baseline/"
+LOG_PATH="Logs/${PHASE}/${MODE}/baseline/GPTFuzz/"
 
 # Create the log directory if it does not exist
 mkdir -p "$LOG_PATH"

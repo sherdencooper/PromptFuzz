@@ -38,7 +38,7 @@ def main(args):
     with open(args.init_file, 'r') as f:
         data = f.readlines()
     data = [json.loads(line) for line in data]
-    focus_data = [d for d in data if d['sample_id'] in focus_id]
+    focus_data = [d for d in data if str(d['sample_id']) in focus_id]
     with open(args.output_file, 'w') as f:
         for d in focus_data:
             f.write(json.dumps(d) + '\n')

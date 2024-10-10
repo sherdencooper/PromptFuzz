@@ -42,7 +42,7 @@ We provide the datasets for preparation and focus stages, including the attack s
 You can use the following scripts to generate the focus attack seeds and the few-shot examples:
 
 ```shell
-nohup bash ./Scripts/promptfuzz_preparation.sh &
+nohup bash ./Scripts/promptfuzz_preparation_seed_evaluate.sh &
 bash ./Scripts/analysis_preparation.sh
 ```
 
@@ -76,8 +76,8 @@ nohup bash ./Scripts/promptfuzz_focus_attack.sh &
 nohup bash ./Scripts/promptfuzz_challenge_defense.sh &
 
 # For baseline comparison
-nohup bash ./Scripts/baseline_gptfuzzer.sh &
-nohup bash ./Scripts/baseline_humanexpert_gcg.sh &
+nohup bash ./Scripts/baseline_fuzzing.sh &
+nohup bash ./Scripts/baseline_static.sh &
 ```
 
 You can read the detailed introduction in the [Scripts](./Scripts/README.md).

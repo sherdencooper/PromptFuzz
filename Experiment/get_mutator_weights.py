@@ -15,12 +15,14 @@ def main(args):
     
     df_mutator['Total'] = df_mutator['OpenAIMutatorCrossOver'] + df_mutator['OpenAIMutatorExpand'] + df_mutator['OpenAIMutatorGenerateSimilar'] + df_mutator['OpenAIMutatorRephrase'] + df_mutator['OpenAIMutatorShorten']
     df_mutator.to_csv(args.output_file, index=False)
-    
+
     df_mutator_sum = df_mutator.sum()
     df_mutator_sum = df_mutator_sum / df_mutator_sum['Total']
+    df_mutator_sum['AttackID'] = 'Total'
+    df_mutator = df_mutator._append(df_mutator_sum, ignore_index=True)
+    df_mutator.to_csv(args.output_file, index=False)
     print(df_mutator_sum)
     
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Testing parameters')
     parser.add_argument('--target_file', type=str, default=None, help='The file to be evaluated')
