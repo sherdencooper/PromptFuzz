@@ -98,7 +98,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Aggregate CSV results')
-    parser.add_argument('--method', choices=['promptfuzz', 'gptfuzz', 'gcg', 'human_expert'], default='promptfuzz', help='Choose which result of method to process')
+    parser.add_argument('--method', choices=['promptfuzz', 'gptfuzz', 'gcg', 'human_expert', 'initial_seed'], default='promptfuzz', help='Choose which result of method to process')
     parser.add_argument('--aggregate_csv_file_path', type=str, help='The path to the aggregate csv file for human_expert and gcg')
     parser.add_argument('--target_path', type=str, help='The path to the file')
     parser.add_argument('--save_path', type=str, help='The path to save the file')
