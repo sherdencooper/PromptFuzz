@@ -4,17 +4,12 @@
 
 - [PromptFuzz: Harnessing Fuzzing Techniques for Robust Testing of Prompt Injection in LLMs](#promptfuzz-harnessing-fuzzing-techniques-for-robust-testing-of-prompt-injection-in-llms)
   - [Table of Contents](#table-of-contents)
-  - [News](#news)
   - [Quick Start](#quick-start)
     - [Setup environment](#setup-environment)
     - [Datasets](#datasets)
     - [Set API key](#set-api-key)
     - [Fine-tuned Model](#fine-tuned-model)
     - [Running Focus Stage](#running-focus-stage)
-
-## News
-
-(2024/07/22) Congrats to our team for NO REASON!
 
 ## Quick Start
 
