@@ -4,17 +4,12 @@
 
 - [PromptFuzz: Harnessing Fuzzing Techniques for Robust Testing of Prompt Injection in LLMs](#promptfuzz-harnessing-fuzzing-techniques-for-robust-testing-of-prompt-injection-in-llms)
   - [Table of Contents](#table-of-contents)
-  - [News](#news)
   - [Quick Start](#quick-start)
     - [Setup environment](#setup-environment)
-    - [Datasets](#datasets)
     - [Set API key](#set-api-key)
+    - [Datasets](#datasets)
     - [Fine-tuned Model](#fine-tuned-model)
     - [Running Focus Stage](#running-focus-stage)
-
-## News
-
-(2024/07/22) Congrats to our team for NO REASON!
 
 ## Quick Start
 
@@ -26,6 +21,14 @@ conda activate promptfuzz
 pip install -r requirements.txt
 ```
 
+### Set API key
+
+You need to set the API key for the model you want to use. In PromptFuzz, the default model is gpt-3.5-turbo-0125. You can set your api_key in the [constants.py](./PromptFuzz/utils/constants.py).
+
+```python
+openai_key = 'your_openai_key'
+```
+
 ### Datasets
 
 We provide the datasets for preparation and focus stages, including the attack seeds, defense prompts, and few-shot examples. You can read the [Datasets](./Datasets/README.md) for more details, and the dataset names are as follows:
@@ -35,7 +38,7 @@ We provide the datasets for preparation and focus stages, including the attack s
 |extraction/hijacking_preparation_defense.jsonl|Preparation|
 |extraction/hijacking_preparation_seed.jsonl|Preparation|
 |extraction/hijacking_focus_seed.jsonl|Focus|
-|extraction/hijacking_few_shot_examples.csv|Focus|
+|extraction/hijacking_few_shot_example.csv|Focus|
 |extraction/hijacking_focus_defense.jsonl|Focus|
 |extraction/hijacking_focus_challenging_defense.jsonl|Focus|
 
@@ -44,14 +47,6 @@ You can use the following scripts to generate the focus attack seeds and the few
 ```shell
 nohup bash ./Scripts/promptfuzz_preparation_seed_evaluate.sh &
 bash ./Scripts/analysis_preparation.sh
-```
-
-### Set API key
-
-You need to set the API key for the model you want to use. In PromptFuzz, the default model is gpt-3.5-turbo-0125. You can set your api_key in the [constants.py](./PromptFuzz/utils/constants.py).
-
-```python
-openai_key = 'your_openai_key'
 ```
 
 ### Fine-tuned Model
