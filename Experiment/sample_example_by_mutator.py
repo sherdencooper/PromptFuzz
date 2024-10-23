@@ -1,12 +1,25 @@
 import argparse
 import pandas as pd
+import json
 
 def get_success_num(data):
     # Get the number of successful attacks
     return sum([num for num in eval(data['results'])])
 
+def get_index2attack(target_file_path):
+    # Get the index2attack mapping
+    index2attack = {}
+    with open(target_file_path, 'r') as f:
+        for line in f.readlines():
+            attack = json.loads(line)['attack']
+            index2attack[len(index2attack)] = attack
+    return index2attack
+
 def main(args):
+    index2attack = get_index2attack(args.init_file)
     df_results = pd.read_csv(args.target_file)
+    df_results['parent_prompt'] = df_results['parent'].apply(lambda x: index2attack[x])
+
     df_examples = pd.DataFrame()
     mutation_list =['OpenAIMutatorCrossOver', 'OpenAIMutatorExpand', 'OpenAIMutatorGenerateSimilar', 'OpenAIMutatorRephrase', 'OpenAIMutatorShorten']
     for _, row in df_results.iterrows():
